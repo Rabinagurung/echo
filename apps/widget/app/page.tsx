@@ -5,7 +5,6 @@ import { Button } from "@workspace/ui/components/button"
 import { useMutation, useQuery } from "convex/react"
 
 
-
 export default function Page() {
 
   const users = useQuery(api.users.getMany)
