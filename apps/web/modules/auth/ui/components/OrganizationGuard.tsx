@@ -1,6 +1,6 @@
 "use client"
 
-import { OrganizationList, useOrganization } from '@clerk/nextjs'
+import {  useOrganization } from '@clerk/nextjs'
 import React from 'react'
 import AuthLayout from '../layout/AuthLayout'
 import OrgSelectionView from '../views/OrgSelectionView'

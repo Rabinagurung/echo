@@ -1,18 +1,9 @@
-import AuthGuard from '@/modules/auth/ui/components/AuthGuard'
-import OrgSelectionGuard from '@/modules/auth/ui/components/OrganizationGuard'
-import React from 'react'
+import DashBoardLayout from '@/modules/dashboard/ui/layout/dashboard-layout'
+
 
 const Layout = ({children}: {children: React.ReactNode}) => {
 
-
-  return (
-   
-    <AuthGuard>
-        <OrgSelectionGuard>
-            {children}
-        </OrgSelectionGuard>
-    </AuthGuard>
-  )
+  return (<DashBoardLayout>{children}</DashBoardLayout>)
 }
 
 export default Layout
