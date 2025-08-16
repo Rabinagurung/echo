@@ -1,7 +1,7 @@
 "use client"
 
 
-import WidgetView from "@/modules/ui/views/widget-view"
+import WidgetView from "@/modules/widget/ui/views/widget-view"
 
 import { use } from "react"
 
