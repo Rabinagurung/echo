@@ -1,5 +1,4 @@
 import Vapi from "@vapi-ai/web";
-import { error } from "console";
 import { useEffect, useState } from "react";
 
 interface TranscriptMessage {
