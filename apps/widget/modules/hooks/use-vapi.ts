@@ -20,7 +20,7 @@ export const useVapi = () =>{
         /*Each customer have to add their own API keys, allowing them to create agents, workflows, phone
         number on their own. This makes our app much more flexible. 
         For me, its great lesson for white labling other's API */
-        const vapiInstance = new Vapi("6e88c982-1c2e-498f-a6ca-0329cc3807f4")
+        const vapiInstance = new Vapi("")
         setVapi(vapiInstance)
         vapiInstance.on("call-start", ()=>{
             setIsConnected(true);
@@ -70,7 +70,7 @@ export const useVapi = () =>{
         setIsConnecting(true); 
         if(vapi) {
              //Only for testing the Vapi API, otherwise customer will provide their own assistant IDS
-            vapi.start("d528eb1d-00d8-48fd-bc8d-65d7ebb84204")
+            vapi.start("")
         }
     }
 
