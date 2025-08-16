@@ -1,6 +1,6 @@
 import React from 'react'
 
-const Page = () => {
+const Page = () => {  
   return (
     <div>Billing</div>
   )

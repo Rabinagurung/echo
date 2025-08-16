@@ -18,8 +18,9 @@ import {
 import Link from "next/link"
 import { OrganizationSwitcher, UserButton } from "@clerk/nextjs"
 import { usePathname } from "next/navigation"
+import { cn } from "@workspace/ui/lib/utils"
  
-// Menu items.
+
 const customerSupportItems = [
   {
     title: "Conversations",
@@ -56,7 +57,8 @@ const accountItem = [
     title: "Plans & Billing",
     url: "/billing",
     icon: CreditCardIcon,
-  }]
+  }
+]
 
 const DashboardSideBar = () => {
 
@@ -102,7 +104,12 @@ const DashboardSideBar = () => {
             <SidebarMenu>
               {customerSupportItems.map((item) => (
                 <SidebarMenuItem key={item.title} >
-                  <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isActive(item.url)} 
+                    tooltip={item.title}
+                    className={cn(isActive(item.url) && "bg-gradient-to-b from-sidebar-primary to-[#0b63f3]! text-sidebar-primary-foreground! hover:to-[#0b63f3]/90!")}
+                  >
                     <Link href={item.url}>
                       <item.icon className="size-4"/>
                       <span>{item.title}</span>
@@ -122,7 +129,12 @@ const DashboardSideBar = () => {
             <SidebarMenu>
               {configurationItems.map((item) => (
                 <SidebarMenuItem key={item.title} >
-                  <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
+                  <SidebarMenuButton
+                   asChild 
+                   isActive={isActive(item.url)} 
+                   tooltip={item.title}
+                    className={cn(isActive(item.url) && "bg-gradient-to-b from-sidebar-primary to-[#0b63f3]! text-sidebar-primary-foreground! hover:to-[#0b63f3]/90!")}
+                   >
                     <Link href={item.url}>
                       <item.icon className="size-4"/>
                       <span>{item.title}</span>
@@ -141,7 +153,12 @@ const DashboardSideBar = () => {
             <SidebarMenu>
               {accountItem.map((item) => (
                 <SidebarMenuItem key={item.title} >
-                  <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
+                  <SidebarMenuButton
+                   asChild
+                    isActive={isActive(item.url)} 
+                    tooltip={item.title}                     
+                    className={cn(isActive(item.url) && "bg-gradient-to-b from-sidebar-primary to-[#0b63f3]! text-sidebar-primary-foreground! hover:to-[#0b63f3]/90!")}
+                  >
                     <Link href={item.url}>
                       <item.icon className="size-4"/>
                       <span>{item.title}</span>
