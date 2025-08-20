@@ -41,7 +41,7 @@ const WidgetAuthScreen = () => {
 
     if(!organizationId) return ;
 
-    const metadata: Doc<"contactSesions">["metadata"] = {
+    const metadata: Doc<"contactSessions">["metadata"] = {
       userAgent: navigator.userAgent, 
       language: navigator.language,
       languages: navigator.languages?.join(","), 

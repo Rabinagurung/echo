@@ -26,7 +26,7 @@ export const create = mutation({
         const now = Date.now(); 
         const expiresAt = now + SESSION_DURATION_MS;
 
-        const contactSessionId  = await ctx.db.insert("contactSesions",{
+        const contactSessionId  = await ctx.db.insert("contactSessions",{
             name: args.name, 
             email: args.email,
             organizationId:args.organizationId,
@@ -41,7 +41,7 @@ export const create = mutation({
 
 export const validate = mutation({
     args: {
-        contactSessionId: v.id("contactSesions")
+        contactSessionId: v.id("contactSessions")
     }, 
     handler: async(ctx, args) => {
 
