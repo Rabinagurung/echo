@@ -3,8 +3,11 @@ import { mutation, query } from "../_generated/server";
 import { supportAgent } from "../system/ai/agents/supportAgent";
 import { saveMessage } from "@convex-dev/agent";
 import { components } from "../_generated/api";
+import { paginationOptsValidator } from "convex/server";
 
  
+
+
 export const getOne = query({
     args: {
         conversationId: v.id("conversations"), 
@@ -85,5 +88,6 @@ export const create = mutation({
         return  conversationId;
     }
 })
+
 
 
