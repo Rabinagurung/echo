@@ -8,7 +8,7 @@ export const create = action({
     args:{
         prompt: v.string(), 
         threadId: v.string(),
-       contactSessionId: v.id("contactSessions"),
+        contactSessionId: v.id("contactSessions"),
     }, 
     handler: async(ctx, args) =>{
 

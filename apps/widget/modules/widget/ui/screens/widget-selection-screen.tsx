@@ -7,9 +7,8 @@ import { contactSessionIdAtomFamily, conversationIdAtom, errorMessageAtom, organ
 import { Button } from "@workspace/ui/components/button";
 import { useMutation } from "convex/react";
 import { api } from "@workspace/backend/_generated/api";
-import { ConvexError } from "convex/values";
 import { useState } from "react";
-import { fa, tr } from "zod/v4/locales";
+import WidgetFooter from "../components/widget-footer";
 
 const WidgetSelectionScreen = () =>{
 
@@ -66,6 +65,7 @@ const WidgetSelectionScreen = () =>{
         <ChevronRightIcon/>
        </Button>
     </div>
+    <WidgetFooter></WidgetFooter>
     </>
     )
 
