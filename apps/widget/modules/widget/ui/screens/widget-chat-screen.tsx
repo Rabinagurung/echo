@@ -57,7 +57,8 @@ const WidgetChatScreen = () =>{
    const {topElementRef, isLoadingMore, canLoadMore, handleLoadMore} = useInfiniteScroll({
             status: messages.status, 
             loadMore: messages.loadMore, 
-            loadSize:10, 
+            loadSize: 10,
+            
     })
    
 

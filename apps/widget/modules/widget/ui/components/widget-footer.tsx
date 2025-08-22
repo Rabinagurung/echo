@@ -10,7 +10,7 @@ const WidgetFooter = () => {
     const setScreen = useSetAtom(screenAtom)
   return (
     <footer className="flex items-center justify-center border-t bg-background">
-        <Button className="h-14 flex-1 rounded-none" size="icon" variant="ghost" onClick={()=>{}}>
+        <Button className="h-14 flex-1 rounded-none" size="icon" variant="ghost" onClick={()=>setScreen("selection")}>
             <HomeIcon className={cn("size-5", screen === "selection" && "text-primary")}/>
         </Button>
         <Button className="h-14 flex-1 rounded-none" size="icon" variant="ghost" onClick={()=> setScreen("inbox")}>
