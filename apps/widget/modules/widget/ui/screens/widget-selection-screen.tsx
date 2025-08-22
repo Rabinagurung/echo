@@ -65,7 +65,7 @@ const WidgetSelectionScreen = () =>{
         <ChevronRightIcon/>
        </Button>
     </div>
-    <WidgetFooter></WidgetFooter>
+    <WidgetFooter/>
     </>
     )
 
