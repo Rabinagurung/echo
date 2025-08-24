@@ -68,7 +68,6 @@ const WidgetSelectionScreen = () =>{
     <WidgetFooter/>
     </>
     )
-
 }
 
 export default WidgetSelectionScreen;
