@@ -1,8 +1,12 @@
 import { ConvexError, v } from "convex/values";
 import { action, query } from "../_generated/server";
-import { internal } from "../_generated/api";
+import { components, internal } from "../_generated/api";
 import { supportAgent } from "../system/ai/agents/supportAgent";
 import { paginationOptsValidator } from "convex/server";
+import { saveMessage } from "@convex-dev/agent";
+import { escalateConversation } from "../system/ai/tools/escalateConversation";
+import { resolveConversation } from "../system/ai/tools/resolveConversation";
+
 
 export const create = action({
     args:{
@@ -54,17 +58,33 @@ export const create = action({
                 message: "Conversation is resolved"
             })
 
-            // Implement subscription check 
+        //Implement subscription check
+        //If the status is unresolved then agent can create message.
+        //If the status is resolved nor agent nor user nor operator can create message.
+        //If the status is escalated only operator can create message to user and agent is not allowed.
 
-        
-        await supportAgent.generateText(
-            ctx, 
-            {   threadId: args.threadId }, 
-            {   prompt: args.prompt }
-        )
+        const shouldTriggerAgent =
+        conversation.status === "unresolved";
+
+        if(shouldTriggerAgent) {
+            await supportAgent.generateText(
+                ctx, 
+                {   threadId: args.threadId }, 
+                {   prompt: args.prompt, 
+                    tools: {
+                        escalateConversationTool: escalateConversation,
+                        resolveConversationTool: resolveConversation,
+                    }
+                 }
+            )
+        } else {
+            await saveMessage(ctx, components.agent, {
+                threadId: args.threadId, 
+                prompt: args.prompt
+            })
+        }
     }
 })
-
 
 export const getMany = query({
     args: {
@@ -72,6 +92,7 @@ export const getMany = query({
         paginationOpts: paginationOptsValidator,
         contactSessionId: v.id("contactSessions"),
     }, 
+    
     handler: async(ctx, args) =>{
         const contactSession = await ctx.db.get(args.contactSessionId); 
         
