@@ -132,7 +132,7 @@ const ConversationsPanel = () => {
                             (<CornerUpLeftIcon className='size-3 shrink-0 text-muted-foreground'/>)}
                             <span className={cn("line-clamp-1 text-muted-foreground textxs", 
                               !isLastMessageOperator && "font-bold text-black")}>
-                                {conversation.lastMessage?.text}
+                                {conversation.lastMessage?.text ?? "No messages yet"}
                                 </span>
                           </div>
                           <ConversationStatusIcon status={conversation.status}/>

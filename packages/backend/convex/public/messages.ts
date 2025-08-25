@@ -32,11 +32,21 @@ export const create = action({
             }
         )
 
+        
         if(!conversation) 
             throw new ConvexError({
                 code: "NOT_FOUND", 
                 message: "Conversation not found"
             })
+
+
+        // Ensure the session owns this conversation/thread   
+        if (conversation.contactSessionId !== args.contactSessionId) {
+            throw new ConvexError({
+                code: "UNAUTHORIZED",
+                message: "Incorrect session"
+            });
+        }
         
         if(conversation.status === "resolved") 
             throw new ConvexError({
@@ -65,11 +75,26 @@ export const getMany = query({
     handler: async(ctx, args) =>{
         const contactSession = await ctx.db.get(args.contactSessionId); 
         
-         if(!contactSession || contactSession.expiresAt < Date.now())
+        if(!contactSession || contactSession.expiresAt < Date.now())
             throw new ConvexError({
                 code: "UNAUTHORIZED", 
                 message: "Invalid session"
             })
+        
+        // Authorize: ensure the provided session owns the thread
+       const conversation = await ctx.runQuery(
+         internal.system.conversations.getByThreadId,
+         { threadId: args.threadId }
+       );
+
+        if (!conversation) {
+            throw new ConvexError({ code: "NOT_FOUND", message: "Conversation not found" });
+        }
+
+        if (conversation.contactSessionId !== args.contactSessionId) {
+            throw new ConvexError({ code: "UNAUTHORIZED", message: "Incorrect session" });
+        }
+
 
         const paginated = await supportAgent.listMessages(ctx, 
             { 
