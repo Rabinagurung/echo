@@ -1,4 +1,5 @@
 "use client";
+
 import { api } from '@workspace/backend/_generated/api'
 import { Doc, Id } from '@workspace/backend/_generated/dataModel'
 import {  useAction, useMutation, useQuery } from 'convex/react'
@@ -31,7 +32,6 @@ import {  useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from 'react';
 import { Form, FormField } from "@workspace/ui/components/form";
-import { tr } from 'zod/v4/locales';
 import ConversationStatusButton from '../components/conversation-status-button';
 import { Skeleton } from '@workspace/ui/components/skeleton';
 import { cn } from '@workspace/ui/lib/utils';
