@@ -1,9 +1,7 @@
 "use client"
 
-import {  useMutation, useQuery} from "convex/react";
-import {api} from "@workspace/backend/_generated/api";
 import { Button } from "@workspace/ui/components/button";
-import {  CreateOrganization, OrganizationSwitcher, UserButton } from "@clerk/nextjs";
+import {  OrganizationSwitcher, UserButton } from "@clerk/nextjs";
 
 export default function Page() {
 
