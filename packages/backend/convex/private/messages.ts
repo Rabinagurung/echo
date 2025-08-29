@@ -58,8 +58,6 @@ export const create = mutation({
 
         const orgId = await checkUserIdentityAndGetOrgId(ctx)
 
-        console.log({orgId})
-
        const conversation = await ctx.db.get(args.conversationId);
 
         if(!conversation) 

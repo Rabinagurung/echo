@@ -6,6 +6,7 @@ import { paginationOptsValidator } from "convex/server";
 import { saveMessage } from "@convex-dev/agent";
 import { escalateConversation } from "../system/ai/tools/escalateConversation";
 import { resolveConversation } from "../system/ai/tools/resolveConversation";
+import { search } from "../system/ai/tools/search";
 
 
 export const create = action({
@@ -74,8 +75,9 @@ export const create = action({
                     tools: {
                         escalateConversationTool: escalateConversation,
                         resolveConversationTool: resolveConversation,
+                        searchTool: search
                     }
-                 }
+                }
             )
         } else {
             await saveMessage(ctx, components.agent, {
@@ -85,6 +87,8 @@ export const create = action({
         }
     }
 })
+
+
 
 export const getMany = query({
     args: {
