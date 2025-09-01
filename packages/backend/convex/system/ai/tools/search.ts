@@ -11,7 +11,6 @@ export const search = createTool({
      description: "Search the knowledge base for relevant information to help answer user questions",
      args: z.object({
         query: z.string().describe("The search query to find relevant information")
-
      }),
 
      handler: async(ctx, args) =>{

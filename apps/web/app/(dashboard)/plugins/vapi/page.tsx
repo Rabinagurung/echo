@@ -1,9 +1,10 @@
-import React from 'react'
+import VapiView from '@/modules/plugins/ui/views/vapi-view'
+
 
 const Page = () => {
   return (
-    <div>Plans&Billing</div>
+    <VapiView/>
   )
 }
 
-export default Page
+export default Page;
