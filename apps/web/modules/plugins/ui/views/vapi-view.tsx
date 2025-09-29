@@ -22,12 +22,12 @@ import { Label } from "@workspace/ui/components/label";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button } from "@workspace/ui/components/button";
+import {  Button } from "@workspace/ui/components/button";
 import { GlobeIcon, PhoneIcon, PhoneCallIcon, WorkflowIcon } from "lucide-react";
-import { useQuery } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@workspace/backend/_generated/api";
 import { useState } from "react";
-
+import { toast } from "sonner";
 
 const vapiFeatures: Feature[] = [
   {
@@ -52,6 +52,151 @@ const vapiFeatures: Feature[] = [
   },
 ];
 
+const formSchema = z.object({
+    publicApiKey: z.string().min(1, { message: "Public API key is required" }),
+    privateApiKey: z.string().min(1, { message: "Private API key is required" }),
+});
+
+interface VapiPluginFormProps {
+    open: boolean;
+    setOpen: (value: boolean) => void;
+}
+
+const VapiPluginForm = ({open, setOpen}: VapiPluginFormProps) => {
+
+    const upsertSecret = useMutation(api.private.secrets.upsert);
+
+    const form = useForm<z.infer<typeof formSchema>>({
+        resolver: zodResolver(formSchema),
+        defaultValues: {
+            publicApiKey: "",
+            privateApiKey: ""
+
+        }
+    })
+
+    const onSubmit = async(values: z.infer<typeof formSchema>) =>{
+        try {
+            await upsertSecret({
+                service: "vapi",
+                value: {
+                    publicApiKey: values.publicApiKey,
+                    privateApiKey: values.privateApiKey
+                }
+            })
+
+            setOpen(false);
+            toast.success("Vapi secret created");
+            
+        } catch (error) {
+            console.error(error);
+            toast.error("Something went wrong");  
+        }
+    }
+
+    return (
+        <Dialog onOpenChange={setOpen} open={open}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Enbale Vapi</DialogTitle>
+                </DialogHeader>
+                <DialogDescription>
+                Your API keys are safely encrypted and stored using AWS Secrets
+                Manager.
+                </DialogDescription>
+                <Form {...form}>
+                    <form 
+                        className="flex flex-col gap-y-4"
+                        onSubmit={form.handleSubmit(onSubmit)}
+                    >
+                        <FormField  
+                            control={form.control}
+                            name='publicApiKey'
+                            render={({field}) => (
+                                <FormItem>
+                                    <Label>Public API key</Label>
+                                    <FormControl>
+                                        <Input 
+                                        {...field}
+                                        placeholder="Your public API key"
+                                        type="text"
+                                        />
+                                    </FormControl>
+                                    <FormMessage/>
+                                </FormItem>
+                            )}
+                        />
+
+                        <FormField  
+                            control={form.control}
+                            name='publicApiKey'
+                            render={({field}) => (
+                                <FormItem>
+                                    <Label>Public API key</Label>
+                                    <FormControl>
+                                        <Input 
+                                        {...field}
+                                        placeholder="Your private API key"
+                                        type="text"
+                                        />
+                                    </FormControl>
+                                    <FormMessage/>
+                                </FormItem>
+                            )}
+                        />
+                        <DialogFooter>
+                            <Button
+                                disabled={form.formState.isSubmitting}
+                                type="submit"   
+                            >
+                                {form.formState.isSubmitting ? "Connecting..." : "Connect"}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </Form>
+            </DialogContent>
+        </Dialog>
+    )
+
+}
+
+const VapiRemmovePluginForm = ({open, setOpen}: VapiPluginFormProps) => {
+
+    const removePlugin = useMutation(api.private.plugins.remove);
+
+    const onSubmit = async() =>{
+        try {
+            await removePlugin({
+                service: "vapi"
+            })
+            setOpen(false);
+            toast.success("Vapi plugin removed");
+            
+        } catch (error) {
+            console.error(error);
+            toast.error("Something went wrong");  
+        }
+    }
+
+    return (
+        <Dialog onOpenChange={setOpen} open={open}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Enbale Vapi</DialogTitle>
+                </DialogHeader>
+                <DialogDescription>
+                Are you sure you want to disconnect the Vapi plugin?
+                </DialogDescription>
+                 <DialogFooter>
+                    <Button onClick={onSubmit} variant="destructive">
+                        Disconnect
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )
+
+}
 
 const VapiView = () => {
 
@@ -70,6 +215,7 @@ const VapiView = () => {
 
   return (
     <>
+    <VapiPluginForm open={connectOpen} setOpen={setConnectOpen}/>
     <div className="flex min-h-screen flex-col bg-muted p-8">
         <div className="mx-auto w-full max-w-screen-md">
             <div className="space-y-2">
