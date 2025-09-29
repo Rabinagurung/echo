@@ -10,7 +10,7 @@ const guessMimeType = (filename: string, bytes: ArrayBuffer): string =>{
     return ( 
         guessMimeTypeFromExtension(filename) ||
         guessMimeTypeFromContents(bytes) || 
-        "application/octet-stream"
+       "application/octet-stream" 
     )
 }
 
@@ -93,8 +93,9 @@ export const addFile = action({
                 storageId,
                 uploadedBy: orgId, 
                 filename, 
-                category: category ?? null
-            },
+                category:category ?? null
+            }, 
+            //to avoid re-inserting if the file content hasnt changed
             contentHash: await contentHashFromArrayBuffer(bytes)
         })
 

@@ -20,29 +20,71 @@ const AI_MODELS = {
 } as const; //Explain why const is used
 
 const SUPPORTED_IMAGE_TYPES = [
-    "image/jpeg", 
-    "image/png", 
-    "image/webp", 
-    "image/gif"
-] as const; // Explain why const is used
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/gif",
+] as const;
 
-// Telling AI model what to if it receives image, pdf or html.
-const SYSYTEM_PROMPTS = {
-    image: "You turn images into text. If it is a photo of document, transcribe it. If it is not document, describe it.",
-    pdf: "You transform PDF files into text",
-    html: "You transform content into markdown"
-}
+const allowedTypes = [
+    ...SUPPORTED_IMAGE_TYPES, 
+    "application/pdf", 
+    "text/plain", 
+    "text/html", 
+    "text/markdown"
+] as const;
 
+
+const SYSTEM_PROMPTS = {
+  image: "You turn images into text. If it is a photo of a document, transcribe it. If it is not a document, describe it.",
+  pdf: "You transform PDF files into text.",
+  html: "You transform content into markdown."
+};
+
+
+/**
+ * Extracts text content from an uploaded file by delegating to the appropriate extractor
+ * based on its MIME type (image, PDF, or text).
+ *
+ * Behavior:
+ * - Validates the MIME type against `allowedTypes`.
+ * - Resolves a public URL for the file via Convex storage (`ctx.storage.getUrl`).
+ * - Routes to:
+ *   - `extractImageText` for supported image types,
+ *   - `extractPdfText` for PDFs,
+ *   - `extractTextFileContent` for plain text and other text-based files.
+ * - Throws for unsupported or disallowed MIME types.
+ *
+ * Notes:
+ * - Uses `assert` to guarantee a valid URL.
+ * - Minimizes AI usage by calling it only when required.
+ *
+ * @param ctx - Convex context with `storage: StorageActionWriter`.
+ * @param args - Object containing file metadata and data.
+ * @param args.storageId - The Convex storage ID of the file.
+ * @param args.filename - The original filename, used for logging and hints.
+ * @param args.bytes - Optional raw file data as an `ArrayBuffer`.
+ * @param args.mimeType - MIME type of the file, used to determine extraction strategy.
+ *
+ * @returns {Promise<string>} Extracted text content in plain text or Markdown.
+ *
+ * @throws {Error} If the MIME type is not allowed, the URL cannot be resolved,
+ * or the file type is unsupported.
+ */
 export async function extractTextContent(
     ctx: { storage: StorageActionWriter}, 
     args: ExtractTextContentArgs
-): Promise<string> {
-    
-    const { storageId, filename, bytes, mimeType} = args;
-    //File was stored in file storage and convex gives us easy way to turn that storageId into acutal url which we can access.
-    const url = await ctx.storage.getUrl(storageId); 
-    assert(url, "Failed to get storage URL"); //url can be undefined | null, so assert from convex-helpers is used
+):Promise<string> {
 
+    const {storageId, filename, bytes, mimeType} = args;
+
+    if(!allowedTypes.some(type => mimeType.toLowerCase().startsWith(type))) {
+        throw new Error(`MIME type not allowed: ${mimeType}`)
+    }
+
+   
+    const url = await ctx.storage.getUrl(storageId);
+    assert(url, "Failed to get storage URL");
     if(SUPPORTED_IMAGE_TYPES.some((type) => type === mimeType)) {
         return extractImageText(url);
     }
@@ -51,8 +93,8 @@ export async function extractTextContent(
         return extractPdfText(url, mimeType, filename);
     }
 
-    if(mimeType.toLowerCase().includes("text")) {
-        return extractTextFileContent(ctx, storageId, bytes, mimeType)
+    if(mimeType.toLowerCase().includes("text")){
+        return extractTextFileContent(ctx, storageId, bytes, mimeType);
     }
 
     throw new Error(`Unsupported MIME type: ${mimeType}`);
@@ -60,32 +102,60 @@ export async function extractTextContent(
 }
 
 
-// User uploads an image, we can transcribe or describe the transcript
+/**
+ * Extracts textual information from an image using a vision-capable AI model.
+ *
+ * Behavior:
+ * - Sends the image URL to `generateText` with the vision model and system prompt.
+ * - Returns the generated text, such as OCR-like transcription or descriptive content.
+ *
+ * @param url - Publicly accessible URL of the stored image.
+ *
+ * @returns {Promise<string>} Text extracted or generated from the image.
+ *
+ * @throws {Error} If the AI model call fails or produces invalid output.
+ */
 async function extractImageText(url: string): Promise<string> {
    const result = await generateText({
         model: AI_MODELS.image, 
-        system: SYSYTEM_PROMPTS.image, 
-        messages: [{ 
+        system: SYSTEM_PROMPTS.image, 
+        messages: [
+            { 
                 role: "user",
                 content: [{ type: "image", image: new URL(url) }]
             }
         ]
    })
 
-   return result.text;
-}
+    return result.text;
+};
 
 
+
+/**
+ * Extracts text content from a PDF file using a PDF-aware AI model.
+ *
+ * Behavior:
+ * - Sends the PDF URL, MIME type, and filename to `generateText` with the PDF model and system prompt.
+ * - Instructs the model to output extracted text only (no explanations or commentary).
+ * - Returns the plain text content for downstream use.
+ *
+ * @param url - Publicly accessible URL of the PDF file.
+ * @param mimeType - The MIME type of the PDF file.
+ * @param filename - The original filename, used for context and logging.
+ *
+ * @returns {Promise<string>} Extracted plain-text content of the PDF.
+ *
+ * @throws {Error} If the AI model call fails or produces invalid output.
+ */
 async function extractPdfText(
     url: string, 
     mimeType: string, 
     filename: string
 ): Promise<string> {
-
-    // Added further instructions to make embeddings clear
     const result = await generateText({
         model: AI_MODELS.pdf, 
-        system: SYSYTEM_PROMPTS.pdf,
+        system: SYSTEM_PROMPTS.pdf,
         messages: [
             {
                 role: "user", 
@@ -98,12 +168,46 @@ async function extractPdfText(
                 ]
             }
         ]
-    })
-    
+    }); 
     return result.text;
-}
+}; 
 
 
+
+/**
+ * Extracts and normalizes text content from a file stored in Convex or from an uploaded ArrayBuffer.
+ *
+ * Workflow:
+ * 1. If `bytes` are provided, use them directly.
+ * 2. If not, fetch the file from Convex storage using `storageId` and convert it to an ArrayBuffer.
+ * 3. For MIME type `text/plain`, decode the content directly using `TextDecoder`.
+ * 4. For other text-based formats (e.g., HTML, Markdown), call `generateText` with an AI model
+ *    to extract the readable text in Markdown format.
+ *
+ * Design Notes:
+ * - Falls back to AI-powered extraction only when necessary, to minimize cost.
+ * - Ensures consistent return type (`string`) for downstream processing.
+ * - Throws an error if the file content cannot be retrieved or decoded.
+ *
+ * @param ctx - Convex context containing `storage: StorageActionWriter`.
+ * @param storageId - The unique Convex storage ID for the file (`_storage` collection).
+ * @param bytes - Optional raw `ArrayBuffer` if the file is uploaded directly.
+ * @param mimeType - The MIME type of the file, used to choose extraction strategy.
+ *
+ * @returns {Promise<string>} The extracted plain-text or Markdown-formatted content.
+ *
+ * @throws {Error} If the file content cannot be retrieved or decoded.
+ *
+ * @example
+ * // Example: Extract plain text
+ * const text = await extractTextFileContent(ctx, storageId, undefined, "text/plain");
+ * console.log(text);
+ *
+ * @example
+ * // Example: Extract from HTML file
+ * const htmlText = await extractTextFileContent(ctx, storageId, undefined, "text/html");
+ * console.log(htmlText); // Markdown-formatted output
+ */
 async function extractTextFileContent(
     ctx: { storage: StorageActionWriter }, 
     storageId: Id<"_storage">,
@@ -111,22 +215,19 @@ async function extractTextFileContent(
     mimeType: string
  ):Promise<string> {
 
-    // Getting arrayBuffer if we got it through file upload or grabbing storage file and running arrayBuffer() on it.
+    
     const arrayBuffer = bytes || (await (await ctx.storage.get(storageId))?.arrayBuffer());
 
     if(!arrayBuffer) {
         throw new Error("Failed to get file content");
     }
 
-    // Text files are very simple, we can get it by textdecoder and arrayBuffer.
-    // But if we received something that is text file but not as simple as text/plain like markdown or html files. 
-    // So, in that case, generateText should be called. To save money we should use AI less so we are saving.
-    const text = new TextDecoder().decode(arrayBuffer) //textdecoder will decode plain text from arrayBuffer
+    const text = new TextDecoder().decode(arrayBuffer)
 
     if(mimeType.toLowerCase() !== "text/plain") {
         const result = await generateText({
             model: AI_MODELS.html, 
-            system: SYSYTEM_PROMPTS.html, 
+            system: SYSTEM_PROMPTS.html, 
             messages: [
                 {
                     role: "user", 
