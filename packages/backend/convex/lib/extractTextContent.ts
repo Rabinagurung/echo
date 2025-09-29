@@ -23,11 +23,21 @@ const SUPPORTED_IMAGE_TYPES = [
     "image/gif",
 ] as const;
 
+const allowedTypes = [
+    ...SUPPORTED_IMAGE_TYPES, 
+    "application/pdf", 
+    "text/plain", 
+    "text/html", 
+    "text/markdown"
+] as const;
+
+
 const SYSTEM_PROMPTS = {
   image: "You turn images into text. If it is a photo of a document, transcribe it. If it is not a document, describe it.",
   pdf: "You transform PDF files into text.",
   html: "You transform content into markdown."
 };
+
 
 export type ExtractTextContentArgs = {
     storageId: Id<"_storage">;
@@ -43,24 +53,30 @@ export async function extractTextContent(
 ):Promise<string> {
 
     const {storageId, filename, bytes, mimeType} = args;
+
+    if(!allowedTypes.some(type => mimeType.toLowerCase().startsWith(type))) {
+        throw new Error(`MIME type not allowed: ${mimeType}`)
+    }
+
     const url = await ctx.storage.getUrl(storageId);
     assert(url, "Failed to get storage URL"); 
 
     if(SUPPORTED_IMAGE_TYPES.some((type) => type === mimeType)) {
-        return extractImageText(url)
+        return extractImageText(url);
     }
 
     if(mimeType.toLowerCase().includes("pdf")){
         return extractPdfText(url, mimeType, filename);
     }
 
-     if(mimeType.toLowerCase().includes("text")){
+    if(mimeType.toLowerCase().includes("text")){
         return extractTextFileContent(ctx, storageId, bytes, mimeType);
     }
 
     throw new Error(`Unsupportes MIME type: ${mimeType}`);
     
 };
+
 
 async function extractTextFileContent(
     ctx: { storage: StorageActionWriter },
@@ -71,7 +87,7 @@ async function extractTextFileContent(
 
     const arrayBuffer = bytes || (await(await ctx.storage.get(storageId))?.arrayBuffer()); 
 
-    if(!arrayBuffer) throw new Error("Failed to get file content");
+    if(!arrayBuffer) throw new Error(`Failed to get file content for storage ID: ${storageId}`);
 
     const text = new TextDecoder().decode(arrayBuffer);
 
@@ -92,10 +108,14 @@ async function extractTextFileContent(
                 }
             ]
         }); 
+
         return result.text;
     }
+
     return text;
 };
+
+
 
 async function extractPdfText(
     url: string, 
@@ -121,6 +141,8 @@ async function extractPdfText(
     }); 
     return result.text;
 }; 
+
+
 
 async function extractImageText(url: string): Promise<string> {
     const result = await generateText({

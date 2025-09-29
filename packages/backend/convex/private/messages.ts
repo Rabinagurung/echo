@@ -51,7 +51,6 @@ export const create = mutation({
     args:{
         conversationId: v.id("conversations"),
         prompt: v.string(), 
-       
     }, 
 
     handler: async(ctx, args) =>{
@@ -94,7 +93,7 @@ export const create = mutation({
             }
         })
     }
-})
+});
 
 
 export const enhanceResponse = action({
@@ -123,4 +122,4 @@ export const enhanceResponse = action({
         return response.text;
 
     }
-})
+});
