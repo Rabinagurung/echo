@@ -17,7 +17,7 @@ export const upsert = internalAction({
         await ctx.runMutation(internal.system.plugins.upsert, {
             service: args.service, 
             secretName, 
-            orgnaizationId: args.organizationId
+            organizationId: args.organizationId
         });
 
         return {status: "success"}

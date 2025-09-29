@@ -6,14 +6,14 @@ export const upsert = internalMutation({
     args: {
         service: v.union(v.literal("vapi")),
         secretName: v.string(),
-        orgnaizationId:v.string()
+        organizationId:v.string()
     }, 
 
     handler: async(ctx, args) => {
         const existingPlugin = await ctx.db
         .query("plugins")
         .withIndex("by_organization_id_and_service", (q) => 
-            q.eq("organizationId", args.orgnaizationId).eq("service", args.service)
+            q.eq("organizationId", args.organizationId).eq("service", args.service)
         )
         .unique();
         
@@ -24,7 +24,7 @@ export const upsert = internalMutation({
             });
         } else {
             await ctx.db.insert("plugins", {
-                organizationId: args.orgnaizationId, 
+                organizationId: args.organizationId, 
                 service: args.service, 
                 secretName: args.secretName
             });
