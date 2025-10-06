@@ -18,14 +18,14 @@ const DashBoardLayout = async({children}: {children: React.ReactNode}) => {
           <Provider>
             <SidebarProvider defaultOpen={defaultOpen}>
                 <DashboardSideBar/>
-                <main className='flex flex-1 flex-col'>
-                {children}
-                </main>
+                  <main className='flex flex-1 flex-col'>
+                    {children}
+                  </main>
             </SidebarProvider>
-             </Provider>
+            </Provider>
         </OrganizationGuard>
     </AuthGuard>
   )
 }
 
-export default DashBoardLayout
+export default DashBoardLayout;
