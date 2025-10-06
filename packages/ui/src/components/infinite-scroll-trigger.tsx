@@ -22,6 +22,10 @@ const InfiniteScrollTrigger = ({
     className,
     ref
 }:InfiniteScrollTriggerProps) => {
+
+    console.log("Infinite Scroll Trigger component called")
+    
+    console.log({ref});
     let text = loadMoreText; 
 
     if(isLoadingMore) {

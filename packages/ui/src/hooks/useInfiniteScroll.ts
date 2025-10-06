@@ -8,21 +8,31 @@ interface UseInfiniteScrollProps{
 }
 
 export const useInfiniteScroll = ({status, loadMore, loadSize=10, observerEnabled=true}:UseInfiniteScrollProps) =>{
+    console.log("2");
+    console.log({status})
 
     const topElementRef = useRef<HTMLDivElement>(null);
 
+    const current = topElementRef.current;
+    console.log({current});
+    console.log("2 end ");
+
+    
     const handleLoadMore = useCallback(()=>{
+        console.log("Status updated: ", status);
         if(status === "CanLoadMore") 
             return loadMore(loadSize)
         
     }, [status, loadMore,loadSize ])
    
-    useEffect(()=>{
+    useEffect(() => {
+        console.log("use effect start");
         const topElement = topElementRef.current; 
 
-        if(!(topElement && observerEnabled )) {
-            return 
-        }
+        console.log({topElement});
+
+        if(!(topElement && observerEnabled )) return;
+        
 
         const observer = new IntersectionObserver(
             ([entry]) => {
@@ -34,6 +44,8 @@ export const useInfiniteScroll = ({status, loadMore, loadSize=10, observerEnable
         );
         
         observer.observe(topElement);
+
+        console.log("use effect finished")
 
         return () => {
             observer.disconnect();

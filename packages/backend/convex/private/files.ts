@@ -1,10 +1,12 @@
 import {  ConvexError, v } from "convex/values";
-import { action, mutation } from "../_generated/server";
+import { action, mutation, query, QueryCtx } from "../_generated/server";
 import { checkUserIdentityAndGetOrgId } from "./checkUserIdentityAndGetOrgId";
-import { contentHashFromArrayBuffer, guessMimeTypeFromContents, guessMimeTypeFromExtension, vEntryId } from "@convex-dev/rag";
+import { contentHashFromArrayBuffer, Entry, EntryId, guessMimeTypeFromContents, guessMimeTypeFromExtension, vEntryId } from "@convex-dev/rag";
 import rag from "../system/ai/rag";
 import { extractTextContent } from "../lib/extractTextContent";
 import { Id } from "../_generated/dataModel";
+import { paginationOptsValidator } from "convex/server";
+
 
 const guessMimeType = (filename: string, bytes: ArrayBuffer): string =>{
     return ( 
@@ -94,7 +96,7 @@ export const addFile = action({
                 uploadedBy: orgId, 
                 filename, 
                 category:category ?? null
-            }, 
+            } as EntryMetadata, 
             //to avoid re-inserting if the file content hasnt changed
             contentHash: await contentHashFromArrayBuffer(bytes)
         })
@@ -188,122 +190,173 @@ export const deleteFile = mutation({
        await rag.deleteAsync(ctx, {entryId: args.entryId})
         
     }
-})
+});
 
-// export const listFile = query({
-//     args: {
-//         category: v.optional(v.string()), 
-//         paginationOpts: paginationOptsValidator
-//     }, 
 
-//     handler: async(ctx, args) => {
-//         const orgId = await checkUserIdentityAndGetOrgId(ctx); 
+/**
+* List embedding files for the current organization. Uses the org's namespace
+* and returns files in a readable {@link PublicFile} format.
+*
+* Steps:
+* - Finds the caller's organization ID.
+* - Gets the org's namespace.
+* - Fetches entries from RAG with pagination.
+* - Converts each entry into {@link PublicFile}.
+* - Optionally filters by category.
+*
+* @param args.category Optional category to filter results.
+* @param args.paginationOpts Options for pagination (limit, cursor).
+* @returns List of {@link PublicFile}, plus pagination info.
+*/
+export const list = query({
+    args: {
+        category: v.optional(v.string()), 
+        paginationOpts: paginationOptsValidator
+    }, 
 
-//         const namespace  = await rag.getNamespace(ctx, {
-//             namespace: orgId
-//         }); 
+    handler: async(ctx, args) =>{
+        const orgId = await checkUserIdentityAndGetOrgId(ctx);
 
-//         if(!namespace) return { page: [], isDone: true, continueCursor: "" }; 
+        const namespace = await rag.getNamespace(ctx, { namespace: orgId})
 
-//         const results = await rag.list(ctx, {
-//             namespaceId: namespace.namespaceId, 
-//             paginationOpts: args.paginationOpts
-//         });
+        if(!namespace) {
+            return { page: [], isDone: true, continueCursor: "" };
+        }
+
+        const results = await rag.list(ctx, { 
+            namespaceId: namespace.namespaceId,
+            paginationOpts: args.paginationOpts
+        });
+
+console.log("api")
+console.log({results}); 
+
+/* 
         
-//         console.log({results});
+*/
 
-//         const files = await Promise.all(
-//             results.page.map((entry) => convertEntryToPublicFile(ctx, entry) )
-//         )
+       
+        const files = await Promise.all(
+            results.page.map((entry) => convertEntryToPublicFile(ctx, entry))
+        ); 
 
-//         console.log({files});
+console.log({files});
 
-//         const filteredFiles = args.category 
-//             ? files.filter((file) => file.category === args.category) 
-//             : files;
-
-//         return {
-//             page: filteredFiles, 
-//             isDone: results.isDone, 
-//             continueCursor: results.continueCursor
-//         }
-//     }
-// });
+        const filteredFiles = args.category ? files.filter((file) => file.category === args.category ) : files;
 
 
-// type EntryMetadata = {
-//   storageId: Id<"_storage">;
-//   uploadedBy: string;
-//   filename: string;
-//   category: string | null;
-// };
+
+console.log({filteredFiles});
+console.log("api end")
+
+        return { 
+            page: filteredFiles, 
+            isDone: results.isDone, 
+            continueCursor: results.continueCursor 
+        };
+
+    }
+});
 
 
-// export type PublicFile= {
-//     id: EntryId;
-//     name: string;
-//     type: string;
-//     size: string;
-//     status: "ready" | "processing" | "error";
-//     url: string | null;
-//     category?: string;
-// };
+/**
+ * Public format of an embedding file.
+ */
+export type PublicFile = {
+  id: EntryId;                  // Unique entry ID.
+  name: string;                 // File name with extension.
+  type: string;                 // File type (extension).
+  size: string;                 // File size in readable form (e.g., "10.2 MB").
+  status: "ready" | "processing" | "error"; // File status.
+  url: string | null;           // URL to access file, or null if not available.
+  category?: string;            // Optional category.
+};
+
+/**
+ * Metadata stored with each entry.
+ */
+export type EntryMetadata = {
+  storageId: Id<"_storage">;    // Storage ID of the file.
+  uploadedBy: string;           // Uploader identifier.
+  filename: string;             // Original filename.
+  category: string | null;      // Optional category.
+};
 
 
-// async function convertEntryToPublicFile(
-//     ctx: QueryCtx, 
-//     entry: Entry
-// ):Promise<PublicFile> {
+/**
+* Convert a raw entry into {@link PublicFile}.
+*
+* Adds readable size, extension, simplified status, and file URL.
+*
+* @param ctx Query context.
+* @param entry Raw entry.
+* @returns {@link PublicFile}
+*/
+async function convertEntryToPublicFile(
+    ctx: QueryCtx, 
+    entry: Entry
+):Promise<PublicFile>{
 
-//     const metadata = entry.metadata as EntryMetadata | undefined;
-//     const storageId = metadata?.storageId; 
+    const metadata = entry.metadata as EntryMetadata | undefined;
+    const strorageId = metadata?.storageId;
 
-//     let filesize = "unknown"; 
+    let filesize = "unknown"; 
+    if(strorageId) {
+        try {
+            const storageMetadata = await ctx.db.system.get(strorageId);
+            if(storageMetadata) {
+                filesize = formatFileSize(storageMetadata.size);
+            }
 
-//     if(storageId){
-//         try {
-//             const storageMetadata = await ctx.db.system.get(storageId); 
-//             if(storageMetadata) {
-//                 filesize = formatFileSize(storageMetadata.size);
-//             }
-//         } catch (error) {
-//             console.error("Failed to get storage metadata: ", error)
-//         }
-//     }
+        } catch (error) {
+            console.error("Failed to get storage metadata: ", error)
+            
+        }
+    };
 
-//     const filename = entry.key || "Unknown";
-//     const extension = !filename.includes(".") ? "text" : filename.split(".").pop()?.toLowerCase() ?? "txt";
+    const filename = entry.key || "Unknown";
+    const extension = filename.split(".").pop()?.toLowerCase() || "txt";
 
-//     let status: "ready" | "processing" | "error" = "error"; 
+    let status: "ready" | "processing" | "error" = "error";
 
-//     if(entry.status === "ready") {
-//         status = "ready"
-//     } else if (entry.status === "pending"){
-//         status = "processing"
-//     }
+    if(entry.status === "ready") {
+        status = "ready"
+    } else if(entry.status === "pending") {
+        status = "processing"
+    };
 
-//     const url = storageId ? await ctx.storage.getUrl(storageId) : null;
+    const url = strorageId ? await ctx.storage.getUrl(strorageId): null;
 
-//     return {
-//         id: entry.entryId,
-//         name: filename,
-//         type: extension,
-//         size: filesize,
-//         status,
-//         url,
-//         category: metadata?.category || undefined,
-//     }
-// };
+     return {
+        id: entry.entryId,
+        name: filename,
+        type: extension,
+        size: filesize, 
+        status, 
+        url,
+        category: metadata?.category || undefined
+    };                                          
+
+};
 
 
-// function formatFileSize(bytes: number): string {
-//   if (bytes === 0) {
-//     return "0 B";
-//   }
+/**
+* Format a number of bytes into a simple string.
+*
+* Supports: B, KB, MB, GB.
+*
+* @param bytes Number of bytes.
+* @returns Formatted size string.
+*/
+function formatFileSize(bytes:number):string {
+    if(bytes === 0) {
+        return "0 B";
+    }
 
-//   const k = 1024;
-//   const sizes = ["B", "KB", "MB", "GB"];
-//   const i = Math.floor(Math.log(bytes) / Math.log(k));
+    const k = 1024;
+    const sizes = ["B", "KB", "MB", "GB"];
 
-//   return `${Number.parseFloat((bytes / k ** i).toFixed(1))} ${sizes[i]}`;
-// };
+    const i = Math.floor(Math.log(bytes)/Math.log(k));
+
+    return `${Number.parseFloat((bytes/k ** i).toFixed(1))} ${sizes[i]}`;
+};

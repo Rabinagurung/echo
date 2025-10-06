@@ -20,4 +20,4 @@ const ConversationLayout = ({children}: {children: React.ReactNode}) => {
   )
 }
 
-export default ConversationLayout
+export default ConversationLayout;
