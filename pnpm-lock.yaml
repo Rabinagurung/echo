@@ -179,7 +179,7 @@ importers:
         specifier: ^1.2.22
         version: 1.2.22(zod@3.25.76)
       '@aws-sdk/client-secrets-manager':
-        specifier: ^3.879.0
+        specifier: ^3.859.0
         version: 3.879.0
       '@clerk/backend':
         specifier: ^2.9.2
