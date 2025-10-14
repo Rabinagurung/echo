@@ -8,6 +8,8 @@ import { errorMessageAtom } from "../../atoms/widget-atoms";
 const WidgetErrorScreen = () =>{
 
     const errorMessage = useAtomValue(errorMessageAtom); 
+    console.log({errorMessage})
+
 
     return (
     <>

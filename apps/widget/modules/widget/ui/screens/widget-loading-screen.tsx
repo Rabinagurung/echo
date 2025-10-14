@@ -18,15 +18,22 @@ const WidgetLoadingScreen = ({organizationId}: {organizationId: string| null}) =
 
     const loadingMessage = useAtomValue(loadingMessageAtom);
     const  setOrganizationId= useSetAtom(organizationIdAtom);
-    const  setScreen= useSetAtom(screenAtom);
+    const  setScreen= useSetAtom(screenAtom); 
     const setErrorMessage = useSetAtom(errorMessageAtom);
     const setLoadingMessage = useSetAtom(loadingMessageAtom);
 
+    console.log({loadingMessage})
+
     const contactSessionId = useAtomValue(contactSessionIdAtomFamily(organizationId || ""))
 
+    console.log({contactSessionId});
+
     const validateOrganizationId = useAction(api.public.organizations.validate)
+    
     useEffect(() => {
+       
         if(step !== "org") return;
+        console.log("1st use effect")
         setLoadingMessage("Finding organization..."); 
 
         if(!organizationId) {
@@ -35,15 +42,16 @@ const WidgetLoadingScreen = ({organizationId}: {organizationId: string| null}) =
             return ;
         }
 
-         setLoadingMessage("Verifying organization..."); 
+        setLoadingMessage("Verifying organization..."); 
 
         validateOrganizationId({organizationId})
             .then((result) => {
                 if(!result.valid) {
                     setErrorMessage(result.reason || "Invalid configuration")
                     setScreen("error")
-
                 }
+
+                console.log({result})
 
                 setOrganizationId(organizationId);
                 setStep("session")
@@ -66,10 +74,12 @@ const WidgetLoadingScreen = ({organizationId}: {organizationId: string| null}) =
 
 
     //Validate contact session if exists 
-
     const validateContactSession = useMutation(api.public.contactSessions.validate)
     useEffect(()=>{
+
+        
         if(step !== "session") return;
+        console.log("2nd use effect")
 
         setLoadingMessage("Loading contact session Id")
 
@@ -104,10 +114,9 @@ const WidgetLoadingScreen = ({organizationId}: {organizationId: string| null}) =
     ])
     
 
-
     useEffect(()=>{
-
         if(step !== "done") return;
+         console.log("3rd use effect")
 
         const hasValidSession = contactSessionId && sessionValid;
         

@@ -1,7 +1,39 @@
 import { v } from "convex/values";
 import { mutation } from "../_generated/server";
 
+/**
+ * Contact session lifetime in milliseconds (24 hours).
+ *
+ * @constant
+ * @default 86,400,000 ms
+ * @remarks
+ * - Keeps sessions short-lived to reduce stale data and exposure surface.
+ */
 const SESSION_DURATION_MS = 24 * 60* 60* 1000;
+
+
+
+/**
+ * Create a new contact session for a user within an organization.
+ *
+ * @mutation public.contactSessions.create
+ *
+ * @param args.name - Display name provided by the user.
+ * @param args.email - Email address provided by the user.
+ * @param args.organizationId - Organization to scope this session under.
+ * @param args.metadata - Optional environment/browser hints for support and analytics.
+ *
+ * @returns The inserted `contactSessions` document id.
+ *
+ * @remarks
+ * - The `expiresAt` timestamp is computed server-side based on {@link SESSION_DURATION_MS}.
+ * - `metadata` is optional and should remain privacy-conscious.
+ * - This mutation is invoked by the client after local validation; server validation
+ *   is enforced again through Convex schema definitions.
+ * - The table schema for `contactSessions` (including its fields and indexes)
+ *   is defined in `schema.ts` under `defineTable({ ... })`.
+ * - Indexed by `organizationId` and `expiresAt` for efficient query and cleanup operations.
+ */
 export const create = mutation({
     args: {
         name: v.string(), 
@@ -22,6 +54,7 @@ export const create = mutation({
                 currentUrl: v.optional(v.string()),  
         }))
     }, 
+
     handler: async(ctx, args) =>{
         const now = Date.now(); 
         const expiresAt = now + SESSION_DURATION_MS;
@@ -32,11 +65,14 @@ export const create = mutation({
             organizationId:args.organizationId,
             metadata:args.metadata, 
             expiresAt
-        })
+        });
 
-        return contactSessionId
+        return contactSessionId;
     }
 })
+
+
+
 
 
 export const validate = mutation({

@@ -9,10 +9,11 @@ import { resolveConversation } from "../system/ai/tools/resolveConversation";
 import { search } from "../system/ai/tools/search";
 
 
+// promt is given by user in front end
 export const create = action({
     args:{
         prompt: v.string(), 
-        threadId: v.string(),
+        threadId: v.string(), //we get threadId from conversation
         contactSessionId: v.id("contactSessions"),
     }, 
     handler: async(ctx, args) =>{
@@ -37,6 +38,7 @@ export const create = action({
             }
         )
 
+        console.log({conversation})
         
         if(!conversation) 
             throw new ConvexError({
@@ -46,7 +48,7 @@ export const create = action({
 
 
         // Ensure the session owns this conversation/thread   
-        if (conversation.contactSessionId !== args.contactSessionId) {
+        if (conversation.contactSessionId !== contactSession._id) {
             throw new ConvexError({
                 code: "UNAUTHORIZED",
                 message: "Incorrect session"
@@ -66,6 +68,10 @@ export const create = action({
 
         const shouldTriggerAgent =
         conversation.status === "unresolved";
+
+        console.log("Hi")
+
+      
 
         if(shouldTriggerAgent) {
             await supportAgent.generateText(
@@ -106,7 +112,7 @@ export const getMany = query({
                 message: "Invalid session"
             })
         
-        // Authorize: ensure the provided session owns the thread
+        
        const conversation = await ctx.runQuery(
          internal.system.conversations.getByThreadId,
          { threadId: args.threadId }
@@ -116,17 +122,17 @@ export const getMany = query({
             throw new ConvexError({ code: "NOT_FOUND", message: "Conversation not found" });
         }
 
-        if (conversation.contactSessionId !== args.contactSessionId) {
+        // Authorize: ensure the provided session owns the thread
+        if (conversation.contactSessionId !== contactSession._id) {
             throw new ConvexError({ code: "UNAUTHORIZED", message: "Incorrect session" });
         }
 
-
+        /** https://docs.convex.dev/agents/threads#getting-messages-in-a-thread */
         const paginated = await supportAgent.listMessages(ctx, 
             { 
                 threadId: args.threadId , 
                 paginationOpts: args.paginationOpts
             }, 
-            
         )
         
         return paginated;

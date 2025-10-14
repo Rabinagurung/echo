@@ -10,12 +10,13 @@ export const create = mutation({
     args: {
         contactSessionId: v.id("contactSessions"),
         organizationId: v.string(), 
-        
     }, 
+
     handler: async(ctx, args) =>{
-        
 
         const session = await ctx.db.get(args.contactSessionId); 
+
+        console.log({session});
 
         if(!session || session.expiresAt < Date.now()) {
             throw new ConvexError({
@@ -28,6 +29,8 @@ export const create = mutation({
        const { threadId } = await supportAgent.createThread(ctx, {
             userId: args.organizationId
         });
+
+        console.log({threadId});
 
         // TODO: later modify to widget settings initial message(allow users to customize inital message)
         await saveMessage(ctx, components.agent, {
@@ -55,6 +58,7 @@ export const getOne = query({
         conversationId: v.id("conversations"), 
         contactSessionId: v.id("contactSessions"),
     }, 
+    
     handler: async(ctx, args) => {
 
         const session = await ctx.db.get(args.contactSessionId); 

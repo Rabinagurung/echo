@@ -17,26 +17,13 @@ export const validate = action({
     }, 
 
     handler: async(_, args)=>{
-        // Check this code 
-       /* const organization = await clerkClient.organizations.getOrganization({organizationId: args.organizationId})
-
-
-        if(!organization){ 
-        return {valid: false, reason: "Organization not valid"}
-        } else {
-        return {valid: true}
-        }
-       
-        */
 
         try {
             const organization = await clerkClient.organizations.getOrganization({organizationId: args.organizationId})
             return { valid: true }
         } catch (error) {
              return { valid: false, reason: "Organization not valid"}
-            
         }
-
     }
 
 })

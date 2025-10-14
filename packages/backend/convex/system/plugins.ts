@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { internalMutation, internalQuery } from "../_generated/server";
 
 
+
 export const upsert = internalMutation({
     args: {
         service: v.union(v.literal("vapi")),
@@ -33,6 +34,7 @@ export const upsert = internalMutation({
 }); 
 
 
+
 export const getByOrganizationIdAndService = internalQuery({
     args: {
         organizationId: v.string(),
@@ -47,4 +49,4 @@ export const getByOrganizationIdAndService = internalQuery({
             )
             .unique();
     }
-})
+});
