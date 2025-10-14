@@ -17,14 +17,34 @@ import { useAtomValue, useSetAtom } from 'jotai';
 import { contactSessionIdAtomFamily, organizationIdAtom, screenAtom } from '../../atoms/widget-atoms';
 
 
-
  const FormSchema = z.object({
     name: z.string().min(1 , "Name is required"), 
     email: z.string().email("Invalid email address")
  })
 
+
+ /**
+  * Initial screen that authenticates/identifies a contact for the widget.
+  *
+  * Responsibilities:
+  * 1. Validate name/email client-side.
+  * 2. Collect lightweight environment metadata (UA, timezone, screen, etc.).
+  * 3. Create a `contactSession` via Convex in Convex database
+  * 4. Persist the returned `contactSessionId` (scoped by organization) in local storage and advance UI.
+  *
+  * @component
+  * @returns React element for the widget auth screen.
+  *
+  * @remarks
+  * - Uses Jotai for state (organization-scoped contactSessionId, screen routing).
+  * - Uses Convex `public.contactSessions.create` mutation.
+  * - Disables submit while `isSubmitting` to prevent duplicate requests.
+  *
+  */
 const WidgetAuthScreen = () => {
   const organizationId = useAtomValue(organizationIdAtom);
+  console.log("Auth screen", {organizationId});
+
   const setContactSessionId = useSetAtom(contactSessionIdAtomFamily(organizationId || ""))
   const setScreen = useSetAtom(screenAtom)
 
@@ -36,8 +56,24 @@ const WidgetAuthScreen = () => {
     } 
   })
 
+  /**
+   * Convex mutation to create a contact session.
+   * @see /convex/public/contactSessions.create
+   */
   const createContactSession = useMutation(api.public.contactSessions.create);
 
+
+  /**
+   * Handles form submission:
+   * 1) Builds browser/environment metadata.
+   * 2) Creates the contact session in DB.
+   * 3) Stores session id in local (scoped) atom + switches to "selection" screen.
+   *
+   * @param data - Validated form values {name, email}.
+   * @remarks
+   * - No-op if `organizationId` is missing (widget not fully configured).
+   * - Assumes mutation success; add try/catch for UX resilience.
+   */
   const onSubmit = async(data:z.infer<typeof FormSchema>) =>{
 
     if(!organizationId) return ;
@@ -57,14 +93,15 @@ const WidgetAuthScreen = () => {
       currentUrl: window.location.href
     }
 
+    // 1) Create the contact session (server)
     const contactSessionId = await createContactSession({...data, organizationId, metadata})
 
-
+    // 2) Persist id + navigate to next screen (client)
     setContactSessionId(contactSessionId);
     setScreen("selection")
     
   }
-
+ 
   return (
     <>
      <WidgetHeader className='flex flex-col justify-between gap-y-2 px-2 py-6 font-semibold'>
@@ -92,7 +129,7 @@ const WidgetAuthScreen = () => {
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <Input placeholder="eg:johndoe@gmail.com" className='h-10 bg-background' type='text' {...field}  />
+                <Input placeholder="eg:johndoe@gmail.com" className='h-10 bg-background' type='email' {...field}  />
               </FormControl>
               <FormMessage />
             </FormItem>

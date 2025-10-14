@@ -22,17 +22,23 @@ import {AIResponse } from "@workspace/ui/components/ai/response";
 import {AISuggestion, AISuggestions } from "@workspace/ui/components/ai/suggestion";
 
 
+
+
 const formSchema = z.object({
     message: z.string().min(1, "Message is required")
 }); 
 
+
 const WidgetChatScreen = () =>{
+
+    const setScreen = useSetAtom(screenAtom);
+    const setConversationId = useSetAtom(conversationIdAtom);
 
     const conversationId = useAtomValue(conversationIdAtom);
     const organizationId = useAtomValue(organizationIdAtom);
     const contactSessionId = useAtomValue(contactSessionIdAtomFamily(organizationId || ""));
-    const setScreen = useSetAtom(screenAtom)
-    const setConversationId = useSetAtom(conversationIdAtom)
+
+    
     
     const onBack = () => {
         setConversationId(null);
@@ -46,20 +52,26 @@ const WidgetChatScreen = () =>{
     } : "skip"
    )
 
-   const messages = useThreadMessages(api.public.messages.getMany, 
-        conversation?.threadId && contactSessionId ? {
+ 
+
+   const messages = useThreadMessages(
+        api.public.messages.getMany, 
+        conversation?.threadId && contactSessionId 
+        ? {
             threadId: conversation.threadId, 
             contactSessionId
-        } : "skip", 
-        {initialNumItems: 10}
+        } 
+        : "skip",
+        { initialNumItems: 10 }
    ); 
+
+
 
    const {topElementRef, isLoadingMore, canLoadMore, handleLoadMore} = useInfiniteScroll({
             status: messages.status, 
             loadMore: messages.loadMore, 
             loadSize: 10,
-            
-    })
+    });
    
 
    const form = useForm<z.infer<typeof formSchema>>({
@@ -67,22 +79,29 @@ const WidgetChatScreen = () =>{
         defaultValues: {
             message: "",    
         }
-   })
-
+   });
 
    const createMessage = useAction(api.public.messages.create); 
 
-   const onSubmit = async(values: z.infer<typeof formSchema>) => {
-        if(!conversation || !contactSessionId) return; 
+
+   const onSubmit = async(data: z.infer<typeof formSchema>) => {
+
+        if(!conversation || !contactSessionId){
+             return;
+        } 
+
         form.reset(); 
 
+        console.log( data.message)
+        
         await createMessage({
             threadId: conversation.threadId, 
+            prompt: data.message,
             contactSessionId, 
-            prompt: values.message
         })
 
-   }
+   };
+
 
     return (
     <>
@@ -98,34 +117,35 @@ const WidgetChatScreen = () =>{
         </Button>
     </WidgetHeader>
    
-      <AIConversation>
-        <AIConversationContent>
-            <InfiniteScrollTrigger 
-                canLoadMore={canLoadMore} 
-                onLoadMore={handleLoadMore}
-                ref={topElementRef}
-                isLoadingMore={isLoadingMore}
-
-                />
-            {toUIMessages(messages.results ?? [])?.map((message) => {
-             return <AIMessage from={message.role === "user" ? "user" : "assistant"} key={message.id}>
-            <AIMessageContent>
-                <AIResponse>{message.content}</AIResponse>
-            </AIMessageContent>
-            {message.role === "assistant" && 
-                <DicebearAvatar
-                    // imageUrl="/logo.svg"
-                    seed="assistant"
-                    size={32}
-                    badgeImageUrl="/logo.svg"
-            />}
-        </AIMessage>
+    <AIConversation>
+    <AIConversationContent>
+        <InfiniteScrollTrigger 
+            canLoadMore={canLoadMore} 
+            isLoadingMore={isLoadingMore}
+            onLoadMore={handleLoadMore}
+            ref={topElementRef}
+        />
+        {toUIMessages(messages.results ?? [])?.map((message) => {
+            return (
+            <AIMessage from={message.role === "user" ? "user" : "assistant"} key={message.id}>
+                <AIMessageContent>
+                    <AIResponse>{message.content}</AIResponse>
+                </AIMessageContent>
+                {message.role === "assistant" && 
+                    <DicebearAvatar
+                        // imageUrl="/logo.svg"
+                        seed="assistant"
+                        size={32}
+                        badgeImageUrl="/logo.svg"
+                />}
+            </AIMessage>
+            )
         })}
-        </AIConversationContent>
-      </AIConversation>
+    </AIConversationContent>
+    </AIConversation>
       {/* ADD SUGGESTIONS */}
 
-        <Form {...form}>
+    <Form {...form}>
             <AIInput
                 className="rounded-none border-x-0 border-b-0"
                 onSubmit={form.handleSubmit(onSubmit)}
@@ -160,12 +180,12 @@ const WidgetChatScreen = () =>{
                     status="ready"
                     type="submit"/>
                 </AIInputToolbar>
-
             </AIInput>
-        </Form>
+    </Form>
     </>
     )
-
 }
+
+
 
 export default WidgetChatScreen;

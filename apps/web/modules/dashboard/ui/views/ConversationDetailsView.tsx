@@ -66,7 +66,7 @@ export const ConversationDetailsView = ({conversationId}: ConversationDetailsVie
         status: messages.status, 
         loadMore: messages.loadMore, 
         loadSize:10
-    })
+    });
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema), 
@@ -145,7 +145,6 @@ export const ConversationDetailsView = ({conversationId}: ConversationDetailsVie
         }
 
     }
-
 
     if (conversation === undefined || messages.status === "LoadingFirstPage") {
         return <ConversationIdViewLoading />
@@ -232,7 +231,7 @@ export const ConversationDetailsView = ({conversationId}: ConversationDetailsVie
                             onClick={handleEnhanceResponse}
                             disabled={
                                 conversation?.status === "resolved" || 
-                                isEnhancing ||
+                                isEnhancing  ||
                                 !form.formState.isValid
                             }
                             >

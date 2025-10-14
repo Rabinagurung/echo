@@ -10,6 +10,7 @@ import { api } from "@workspace/backend/_generated/api";
 import { useState } from "react";
 import WidgetFooter from "../components/widget-footer";
 
+
 const WidgetSelectionScreen = () =>{
 
     const setConversationId = useSetAtom(conversationIdAtom);
@@ -19,7 +20,6 @@ const WidgetSelectionScreen = () =>{
     
     const organizationId = useAtomValue(organizationIdAtom);
     const contactSessionId = useAtomValue(contactSessionIdAtomFamily(organizationId || ""));
-
 
     const createConversation = useMutation(api.public.conversations.create)
     const [isPending, setIsPending] = useState(false)
@@ -43,7 +43,6 @@ const WidgetSelectionScreen = () =>{
              setScreen("chat")
         } catch (error) {
             setScreen("auth");
-            
         }finally{
             setIsPending(false)
         }
