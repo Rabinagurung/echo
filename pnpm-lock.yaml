@@ -202,6 +202,9 @@ importers:
       convex-helpers:
         specifier: ^0.1.100
         version: 0.1.104(convex@1.26.1(@clerk/clerk-react@5.43.1(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react@19.1.1))(react@19.1.1)(typescript@5.9.3)(zod@3.25.76)
+      server-sdk^0.10.0:
+        specifier: link:@vapi-ai/server-sdk^0.10.0
+        version: link:@vapi-ai/server-sdk^0.10.0
       zod:
         specifier: ^3.25.76
         version: 3.25.76
