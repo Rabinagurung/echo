@@ -1,5 +1,4 @@
 import { Badge } from "@workspace/ui/components/badge";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@workspace/ui/components/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableRow, TableHeader } from "@workspace/ui/components/table";
 import { toast } from "sonner";
 import { useVapiPhoneNumbers } from "../../hooks/use-vapi-data";

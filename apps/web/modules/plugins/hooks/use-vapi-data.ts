@@ -1,5 +1,4 @@
 import { api } from "@workspace/backend/_generated/api"
-import { getPhoneNumbers, getAssistants } from "@workspace/backend/private/vapi"
 import { useAction } from "convex/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";

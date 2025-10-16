@@ -1,7 +1,7 @@
 import { Badge } from "@workspace/ui/components/badge";
 import { Table, TableBody, TableCell, TableHead, TableRow, TableHeader } from "@workspace/ui/components/table";
 import {  useVapiAssistants } from "../../hooks/use-vapi-data";
-import { BotIcon, CheckCircleIcon, PhoneIcon, XCircleIcon } from "lucide-react";
+import { BotIcon } from "lucide-react";
 
 
 const VapiAssistantsTab = () => {

@@ -54,7 +54,7 @@ export const getPhoneNumbers = action({
          * const vapiClient = new VapiClient({
             token: process.env.VAPI_SECRET_KEY || ""
             })
-        * but we want to whitelabel VAPI key for our customers so we will use secretData.privateApiKey given by out customers
+        * but we want to whitelabel VAPI key for out customers so we will use secretData.privateApiKey given by out customers
         */
         const vapiClient = new VapiClient({
             token: secretData.privateApiKey

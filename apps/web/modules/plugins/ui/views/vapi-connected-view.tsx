@@ -5,7 +5,6 @@ import { BotIcon, PhoneIcon, SettingsIcon, UnplugIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { Ca } from "zod/v4/locales";
 import VapiPhoneNumbersTab from "../components/vapi-phone-numbers-tab";
 import VapiAssistantsTab from "../components/vapi-assistants-tab";
 
@@ -34,7 +33,7 @@ const VapiConnectedView = ({ onDisconnect }: VapiConnectedViewProps) => {
                         <div>
                             <CardTitle>Vapi Integration</CardTitle>
                             <CardDescription>
-                                Manage your phone numbers and AI assitants
+                                Manage your phone numbers and AI assistants
                             </CardDescription>
                         </div>
                     </div>
@@ -85,7 +84,7 @@ const VapiConnectedView = ({ onDisconnect }: VapiConnectedViewProps) => {
                     </TabsTrigger>
                     <TabsTrigger className="h-full rounded-none" value="assistants">
                         <BotIcon/>
-                        AI Assitants
+                        AI Assistants
                     </TabsTrigger>
                 </TabsList>
                 <TabsContent value="phone-numbers">
