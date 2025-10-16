@@ -18,6 +18,11 @@ interface PluginCardProps {
     onSubmit: () => void;
 }
 
+
+/**
+ * Generic “connect integration” card used when a plugin is not yet configured.
+ * Renders the vendor logo, a few bullets, and a primary Connect CTA.
+ */
 const PluginCard = ({
     isDisabled, 
     serviceImage, 
@@ -26,7 +31,8 @@ const PluginCard = ({
     onSubmit
 }:PluginCardProps) => {
   return (
-    <div className='h-fit w-full rounded-lg border bg-background p-8'>
+   
+    <div className='h-fit w-full rounded-lg border bg-background p-8 '>
         <div className='mb-6 flex items-center justify-center gap-6'>
             <div className='flex flex-col items-center'>
                 <Image 
@@ -35,18 +41,17 @@ const PluginCard = ({
                     height={40}
                     width={40}
                     src={serviceImage}
-                    />
+                />  
             </div>
             <div className='flex flex-col items-center gap-1'>
                 <ArrowLeftRightIcon/>
             </div>
-
             <div className='flex flex-col items-center'>
                 <Image 
-                    alt='platform' 
-                    className='object-contain' 
-                    height={30} 
-                    width={30}
+                    alt='Platform' 
+                    className='rounded object-contain' 
+                    height={40} 
+                    width={40}
                     src="/logo.svg"
                 />
             </div>
