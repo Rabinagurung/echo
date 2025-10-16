@@ -3,6 +3,15 @@ import { mutation, query } from "../_generated/server";
 import { checkUserIdentityAndGetOrgId } from "./checkUserIdentityAndGetOrgId";
 
 
+/**
+ * Fetch a single plugin for the authenticated user's organization by service.
+ *
+ * Returns:
+ * - the plugin document if found,
+ * - `null` if not found.
+ *
+ * Uses the composite index `by_organization_id_and_service`.
+ */
 export const getOne = query({
     args: {
         service: v.union(v.literal("vapi"))
@@ -19,9 +28,20 @@ export const getOne = query({
             )
             .unique();
     }
-})
+});
 
 
+
+/**
+ * Delete a plugin for the authenticated user's organization by service.
+ *
+ * Throws:
+ * - {@link ConvexError} with code "NOT_FOUND" if the plugin does not exist.
+ *
+ * Side effects:
+ * - Removes the plugin record from Convex. Does **not** delete the AWS Secret.
+ *   (Secret lifecycle is handled independently.)
+ */
 export const remove = mutation({
     args: {
         service: v.union(v.literal("vapi"))

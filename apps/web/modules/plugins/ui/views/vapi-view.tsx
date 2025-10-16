@@ -19,7 +19,7 @@ import PluginCard, { type Feature } from "../components/plugin-card";
 
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
-import { z } from "zod";
+import {  z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {  Button } from "@workspace/ui/components/button";
@@ -62,6 +62,17 @@ interface VapiPluginFormProps {
     setOpen: (value: boolean) => void;
 }
 
+
+/**
+ * Modal form that collects Vapi API credentials and schedules a backend upsert.
+ *
+ * UX flow:
+ * - User enters keys and submits.
+ * - Triggers `api.private.secrets.upsert` mutation, which schedules
+ *   `internal.system.secrets.upsert` to write the secret to AWS Secrets Manager
+ *   and upsert a plugin record in Convex.
+ * - On success, closes the dialog and shows a toast.
+ */
 const VapiPluginForm = ({open, setOpen}: VapiPluginFormProps) => {
 
     const upsertSecret = useMutation(api.private.secrets.upsert);
@@ -71,17 +82,21 @@ const VapiPluginForm = ({open, setOpen}: VapiPluginFormProps) => {
         defaultValues: {
             publicApiKey: "",
             privateApiKey: ""
-
         }
-    })
+    });
 
-    const onSubmit = async(values: z.infer<typeof formSchema>) =>{
+
+    /**
+     * Handles form submission by invoking a Convex mutation that schedules
+     * an internal action to persist the secret and link the plugin.
+     */
+    const onSubmit = async(data: z.infer<typeof formSchema>) =>{
         try {
             await upsertSecret({
                 service: "vapi",
                 value: {
-                    publicApiKey: values.publicApiKey,
-                    privateApiKey: values.privateApiKey
+                    publicApiKey: data.publicApiKey,
+                    privateApiKey: data.privateApiKey
                 }
             })
 
@@ -129,10 +144,10 @@ const VapiPluginForm = ({open, setOpen}: VapiPluginFormProps) => {
 
                         <FormField  
                             control={form.control}
-                            name='publicApiKey'
+                            name='privateApiKey'
                             render={({field}) => (
                                 <FormItem>
-                                    <Label>Public API key</Label>
+                                    <Label>Private API key</Label>
                                     <FormControl>
                                         <Input 
                                         {...field}
@@ -160,51 +175,83 @@ const VapiPluginForm = ({open, setOpen}: VapiPluginFormProps) => {
 
 }
 
-const VapiRemmovePluginForm = ({open, setOpen}: VapiPluginFormProps) => {
 
-    const removePlugin = useMutation(api.private.plugins.remove);
-
-    const onSubmit = async() =>{
-        try {
-            await removePlugin({
-                service: "vapi"
-            })
-            setOpen(false);
-            toast.success("Vapi plugin removed");
-            
-        } catch (error) {
-            console.error(error);
-            toast.error("Something went wrong");  
-        }
-    }
-
-    return (
-        <Dialog onOpenChange={setOpen} open={open}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Enbale Vapi</DialogTitle>
-                </DialogHeader>
-                <DialogDescription>
-                Are you sure you want to disconnect the Vapi plugin?
-                </DialogDescription>
-                 <DialogFooter>
-                    <Button onClick={onSubmit} variant="destructive">
-                        Disconnect
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    )
-
-}
-
+/**
+ * ### `VapiView`
+ *
+ * Main React client component responsible for managing the **Vapi plugin integration**.
+ * It handles connection state, plugin loading, and conditional rendering between the
+ * connection UI and connected state.
+ *
+ * ---
+ *
+ * #### 🧠 Overview
+ * - Fetches the current organization’s **Vapi plugin record** via
+ *   [`useQuery`](https://docs.convex.dev/react/use-query) → `api.private.plugins.getOne`.
+ * - Displays a [`PluginCard`](../components/plugin-card.tsx) prompting connection
+ *   when no plugin exists.
+ * - Renders a placeholder connected view (`<div>Connected!!</div>`) when a plugin exists
+ *   — in the future this will be replaced by `VapiConnectedView`.
+ * - Embeds the [`VapiPluginForm`](#) dialog to securely collect and submit Vapi API credentials.
+ *
+ * ---
+ *
+ * #### ⚙️ Internal Logic
+ * - **`vapiPlugin`** — result of `useQuery(api.private.plugins.getOne, { service: "vapi" })`
+ *   - `undefined` → loading state (query not resolved yet)
+ *   - `null` → no plugin found (not connected)
+ *   - plugin object → connected (has secretName + service + org linkage)
+ *
+ * - **`toggleConnection()`**
+ *   - If `vapiPlugin` exists → opens a future *remove* dialog.
+ *   - If not connected → opens the *connect* form (`VapiPluginForm`).
+ *
+ * - **State:**
+ *   - `connectOpen` → controls visibility of the connect dialog form.
+ *   - `removeOpen` → placeholder for a future remove confirmation dialog.
+ *
+ * ---
+ *
+ * #### 🧩 UI Behavior
+ * - While `vapiPlugin` is loading, disables the connect button in `PluginCard`.
+ * - When disconnected, displays `PluginCard` showing:
+ *   - Service name and image
+ *   - Marketing feature bullets (`vapiFeatures`)
+ *   - “Connect” button
+ * - When connected, displays a temporary “Connected!!” message.
+ *
+ * ---
+ *
+ * #### 🔐 Data Flow
+ * 1. User clicks **Connect** → opens `VapiPluginForm`.
+ * 2. `VapiPluginForm` calls [`api.private.secrets.upsert`](../../backend/convex/private/secrets.ts),
+ *    which schedules [`internal.system.secrets.upsert`](../../backend/convex/system/secrets.ts).
+ * 3. The internal action:
+ *    - Persists credentials in **AWS Secrets Manager** under `tenant/{orgId}/vapi`.
+ *    - Creates or updates the plugin record in Convex.
+ * 4. When the Convex query re-runs and returns a plugin record, the UI updates
+ *    to the connected state.
+ */
 const VapiView = () => {
 
+    /**
+     * Presence of a plugin record indicates that Vapi is connected for this org.
+     * `undefined` => loading; `null` => not found; object => connected.
+     */   
     const vapiPlugin = useQuery(api.private.plugins.getOne, {service: "vapi"}); 
 
+     // Controls visibility of the connection modal dialog. 
     const [connectOpen, setConnectOpen] = useState(false); 
+
+     // Controls visibility of the future removal confirmation dialog.
     const [removeOpen, setRemoveOpen] = useState(false); 
 
+
+     /**
+     * Handles the "Connect" button inside PluginCard component:
+     * - If plugin exists, open the remove dialog (not yet implemented here).
+     * - If not connected, open the connect dialog.
+     */
     const toggleConnection = () =>{
         if(vapiPlugin) {
             setRemoveOpen(true)
@@ -212,6 +259,7 @@ const VapiView = () => {
             setConnectOpen(true)
         }
     }
+
 
   return (
     <>
@@ -223,12 +271,17 @@ const VapiView = () => {
                 <p className="text-muted-foreground">Connect Vapi to enable AI voice calls and phone support</p>
             </div>
             <div className="mt-8">
-               <PluginCard 
-                    serviceName="Vapi"
-                    serviceImage="/vapi.jpg"
-                    features={vapiFeatures}
-                    onSubmit={toggleConnection}
-               />
+                {vapiPlugin ? ( 
+                    <div>Connected!!</div>
+                ) :  (
+                    <PluginCard 
+                        isDisabled={vapiPlugin === undefined}
+                        serviceName="Vapi"
+                        serviceImage="/vapi.jpg"
+                        features={vapiFeatures}
+                        onSubmit={toggleConnection}
+                    />
+               )}
             </div>
         </div>
     </div>

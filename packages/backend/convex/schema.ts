@@ -3,11 +3,20 @@ import { v } from "convex/values";
 
 
 export default defineSchema({
-
+    /**
+     * Convex schema for plugin configurations.
+     *
+     * Each record links an organization to a third-party integration.
+     * -`secretName` points to the AWS Secrets Manager entry holding API keys.
+     * -`service` identifies which external service the secret belongs to (e.g., vapi, google calender).
+     * 
+     * eg: We can ask AWS Secret Manager about What are the API keys of this organization that stored vapi keys ? 
+     * We will use getSecretValue fn of secrets.ts to get those API keys and use parseSecretString fn to parse stringified API keys to JSON object.
+     */
     plugins: defineTable({
-        service: v.union(v.literal("vapi")),
-        secretName: v.string(),
         organizationId: v.string(),
+        secretName: v.string(), // AWS secret name storing service credentials like API keys of vapi 
+        service: v.union(v.literal("vapi")), // Service type (extendable to others like google calender)
     })
     .index("by_organization_id", ["organizationId"])
     .index("by_organization_id_and_service", ["organizationId", "service"]),
