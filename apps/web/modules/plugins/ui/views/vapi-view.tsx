@@ -16,7 +16,6 @@ import {
   FormMessage,
 } from "@workspace/ui/components/form";
 import PluginCard, { type Feature } from "../components/plugin-card";
-
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import {  z } from "zod";
@@ -28,6 +27,7 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "@workspace/backend/_generated/api";
 import { useState } from "react";
 import { toast } from "sonner";
+import VapiConnectedView from "./vapi-connected-view";
 
 const vapiFeatures: Feature[] = [
   {
@@ -105,7 +105,7 @@ const VapiPluginForm = ({open, setOpen}: VapiPluginFormProps) => {
             
         } catch (error) {
             console.error(error);
-            toast.error("Something went wrong");  
+            toast.error("Something went wrong while storing Vapi secret keys.");  
         }
     }
 
@@ -134,7 +134,7 @@ const VapiPluginForm = ({open, setOpen}: VapiPluginFormProps) => {
                                         <Input 
                                         {...field}
                                         placeholder="Your public API key"
-                                        type="text"
+                                        type="password"
                                         />
                                     </FormControl>
                                     <FormMessage/>
@@ -152,7 +152,7 @@ const VapiPluginForm = ({open, setOpen}: VapiPluginFormProps) => {
                                         <Input 
                                         {...field}
                                         placeholder="Your private API key"
-                                        type="text"
+                                        type="password"
                                         />
                                     </FormControl>
                                     <FormMessage/>
@@ -174,6 +174,54 @@ const VapiPluginForm = ({open, setOpen}: VapiPluginFormProps) => {
     )
 
 }
+
+
+
+
+
+const VapiPluginRemoveForm = ({
+  open,
+  setOpen,
+}: {
+  open: boolean;
+  setOpen: (value: boolean) => void;
+}) => {
+  const removePlugin = useMutation(api.private.plugins.remove);
+
+  const onSubmit = async () => {
+    try {
+      await removePlugin({
+        service: "vapi",
+      });
+      setOpen(false);
+      toast.success("Vapi plugin removed");
+    } catch (error) {
+      console.error(error);
+      toast.error("Something went wrong while deleting plugin");
+    }
+  };
+
+  return (
+    <Dialog onOpenChange={setOpen} open={open}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Disconnect Vapi</DialogTitle>
+        </DialogHeader>
+        <DialogDescription>
+          Are you sure you want to disconnect the Vapi plugin?
+        </DialogDescription>
+        <DialogFooter>
+          <Button onClick={onSubmit} variant="destructive">
+            Disconnect
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+
+
 
 
 /**
@@ -264,6 +312,7 @@ const VapiView = () => {
   return (
     <>
     <VapiPluginForm open={connectOpen} setOpen={setConnectOpen}/>
+    <VapiPluginRemoveForm open={removeOpen} setOpen={setRemoveOpen}/>
     <div className="flex min-h-screen flex-col bg-muted p-8">
         <div className="mx-auto w-full max-w-screen-md">
             <div className="space-y-2">
@@ -272,7 +321,7 @@ const VapiView = () => {
             </div>
             <div className="mt-8">
                 {vapiPlugin ? ( 
-                    <div>Connected!!</div>
+                   <VapiConnectedView onDisconnect={toggleConnection} />
                 ) :  (
                     <PluginCard 
                         isDisabled={vapiPlugin === undefined}
