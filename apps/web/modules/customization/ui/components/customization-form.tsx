@@ -86,7 +86,7 @@ const CustomizationForm = ({initialData, hasVapiPlugin}:CustomizationFormProps) 
                     <CardHeader>
                         <CardTitle>General Chat Settings</CardTitle>
                         <CardDescription>
-                            Configure basic chat widget behavoir and message
+                            Configure basic chat widget behavior and message
                         </CardDescription>
                     </CardHeader>
                     <CardContent className='space-y-6'>

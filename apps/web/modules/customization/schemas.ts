@@ -1,4 +1,4 @@
-import z from "zod"
+import { z } from "zod";
 
 export const widgetSettingsSchema = z.object({
     greetMessage: z.string().min(1, "Greetings message is required"),
