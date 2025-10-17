@@ -3,7 +3,7 @@
 import {  LoaderIcon } from "lucide-react";
 import WidgetHeader from "../components/widget-header";
 import { useAtomValue, useSetAtom } from "jotai";
-import { contactSessionIdAtomFamily, errorMessageAtom, loadingMessageAtom, organizationIdAtom, screenAtom, widgetSettingsAtom } from "../../atoms/widget-atoms";
+import { contactSessionIdAtomFamily, errorMessageAtom, loadingMessageAtom, organizationIdAtom, screenAtom, vapiSecretsAtom, widgetSettingsAtom } from "../../atoms/widget-atoms";
 import { useEffect, useState } from "react";
 import { useAction, useMutation, useQuery } from "convex/react";
 import { api } from "@workspace/backend/_generated/api";
@@ -17,9 +17,10 @@ const WidgetLoadingScreen = ({organizationId}: {organizationId: string| null}) =
     const [sessionValid, setSessionValid] = useState(false);
 
     const loadingMessage = useAtomValue(loadingMessageAtom);
-    const  setOrganizationId= useSetAtom(organizationIdAtom);
-    const  setWidgetSettings= useSetAtom(widgetSettingsAtom);
-    const  setScreen= useSetAtom(screenAtom); 
+    const  setOrganizationId = useSetAtom(organizationIdAtom);
+    const  setWidgetSettings = useSetAtom(widgetSettingsAtom);
+    const  setVapiSecrets = useSetAtom(vapiSecretsAtom);
+    const  setScreen = useSetAtom(screenAtom); 
     const setErrorMessage = useSetAtom(errorMessageAtom);
     const setLoadingMessage = useSetAtom(loadingMessageAtom);
 
@@ -29,6 +30,7 @@ const WidgetLoadingScreen = ({organizationId}: {organizationId: string| null}) =
 
     console.log({contactSessionId});
 
+    //step1: verify organization
     const validateOrganizationId = useAction(api.public.organizations.validate)
 
     useEffect(() => {
@@ -38,7 +40,7 @@ const WidgetLoadingScreen = ({organizationId}: {organizationId: string| null}) =
         setLoadingMessage("Finding organization..."); 
 
         if(!organizationId) {
-            setErrorMessage("organizationId is required");
+            setErrorMessage("Organization ID is required");
             setScreen("error") 
             return ;
         }
@@ -74,11 +76,10 @@ const WidgetLoadingScreen = ({organizationId}: {organizationId: string| null}) =
   ])
 
 
-    //Validate contact session if exists 
+    //step 2: Validate contact session if exists 
     const validateContactSession = useMutation(api.public.contactSessions.validate)
     useEffect(()=>{
 
-        
         if(step !== "session") return;
         console.log("2nd use effect")
 
@@ -104,13 +105,15 @@ const WidgetLoadingScreen = ({organizationId}: {organizationId: string| null}) =
         
     }, [step, contactSessionId, validateContactSession, setLoadingMessage])
 
-    //step3: load widget settings 
+    
+
+     //step3: load widget settings(optional)
     const widgetSettings = useQuery(api.public.widgetSettings.getByOrganizationId, 
         organizationId ? { 
             organizationId
         } : "skip"
     ); 
-
+   
     useEffect(()=>{
         if(step !== "settings") return;
 
@@ -118,15 +121,41 @@ const WidgetLoadingScreen = ({organizationId}: {organizationId: string| null}) =
 
         if(widgetSettings !== undefined) {
             setWidgetSettings(widgetSettings); 
-            setStep("done");
+            setStep("vapi");
         }
     },[step, widgetSettings, setWidgetSettings, setLoadingMessage]); 
 
 
-    //step3: load widget settings 
+    
+    //step4: load vapiSecrets(optinal)
+    const getVapiSecrets = useAction(api.public.secrets.getVapiSecrets);
+
+    useEffect(()=>{
+        if(step !== "vapi") return;
+        if(!organizationId) {
+            setErrorMessage("Organization ID is required");
+            setScreen("error") 
+            return ;
+        }
+
+        setLoadingMessage("Loading voice features...")
+        getVapiSecrets({organizationId})
+            .then((secrets) => {
+                setVapiSecrets(secrets);
+                setStep("done")
+            })
+            .catch(()=> {
+                setVapiSecrets(null);
+                setStep("done")
+            })
+
+    },[step, organizationId, getVapiSecrets, setVapiSecrets, setLoadingMessage, setStep])
+
+ 
+    //step5: done
     useEffect(()=>{
         if(step !== "done") return;
-         console.log("3rd use effect")
+        
 
         const hasValidSession = contactSessionId && sessionValid;
         
