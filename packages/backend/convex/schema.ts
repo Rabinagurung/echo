@@ -35,6 +35,7 @@ export default defineSchema({
         }),
     })
     .index("by_organization_id", ["organizationId"])
+    
     ,
 
 

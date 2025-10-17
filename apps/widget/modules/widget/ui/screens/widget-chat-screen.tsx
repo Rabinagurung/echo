@@ -6,7 +6,7 @@ import {useForm} from "react-hook-form";
 import { Form, FormField } from "@workspace/ui/components/form";
 import WidgetHeader from "../components/widget-header";
 import { useAtomValue, useSetAtom } from "jotai";
-import { contactSessionIdAtomFamily, conversationIdAtom, organizationIdAtom, screenAtom } from "../../atoms/widget-atoms";
+import { contactSessionIdAtomFamily, conversationIdAtom, organizationIdAtom, screenAtom, widgetSettingsAtom } from "../../atoms/widget-atoms";
 import { useAction, useQuery } from "convex/react";
 import { Button } from "@workspace/ui/components/button";
 import { ArrowLeftIcon, MenuIcon } from "lucide-react";
@@ -20,7 +20,7 @@ import {AIInput, AIInputSubmit ,AIInputTextarea, AIInputToolbar, AIInputTools } 
 import {AIMessage, AIMessageContent } from "@workspace/ui/components/ai/message";
 import {AIResponse } from "@workspace/ui/components/ai/response";
 import {AISuggestion, AISuggestions } from "@workspace/ui/components/ai/suggestion";
-
+import { useMemo } from "react";
 
 
 
@@ -34,25 +34,39 @@ const WidgetChatScreen = () =>{
     const setScreen = useSetAtom(screenAtom);
     const setConversationId = useSetAtom(conversationIdAtom);
 
+    const widgetSettings = useAtomValue(widgetSettingsAtom);
     const conversationId = useAtomValue(conversationIdAtom);
     const organizationId = useAtomValue(organizationIdAtom);
     const contactSessionId = useAtomValue(contactSessionIdAtomFamily(organizationId || ""));
 
-    
-    
+     const form = useForm<z.infer<typeof formSchema>>({
+        resolver: zodResolver(formSchema), 
+        defaultValues: {
+            message: "",    
+        }
+    });
+
     const onBack = () => {
         setConversationId(null);
         setScreen("selection")
     }
 
-   const conversation = useQuery(api.public.conversations.getOne, 
-    conversationId && contactSessionId ? {
-        conversationId,
-        contactSessionId, 
-    } : "skip"
-   )
+    const suggestions = useMemo(()=>{
+        if(!widgetSettings) return []; 
 
- 
+        return Object.keys(widgetSettings.defaultSuggestions).map((key) => {
+            return widgetSettings.defaultSuggestions[
+                key as keyof typeof widgetSettings.defaultSuggestions
+            ]
+        });
+    },[widgetSettings]);
+
+    const conversation = useQuery(api.public.conversations.getOne, 
+        conversationId && contactSessionId ? {
+            conversationId,
+            contactSessionId, 
+        } : "skip"
+    )
 
    const messages = useThreadMessages(
         api.public.messages.getMany, 
@@ -74,13 +88,7 @@ const WidgetChatScreen = () =>{
     });
    
 
-   const form = useForm<z.infer<typeof formSchema>>({
-        resolver: zodResolver(formSchema), 
-        defaultValues: {
-            message: "",    
-        }
-   });
-
+  
    const createMessage = useAction(api.public.messages.create); 
 
 
@@ -143,8 +151,32 @@ const WidgetChatScreen = () =>{
         })}
     </AIConversationContent>
     </AIConversation>
-      {/* ADD SUGGESTIONS */}
-
+    {toUIMessages(messages.results ?? [])?.length === 1  &&
+    (
+        <AISuggestions className="flex w-full flex-col items-end p-2">
+        {suggestions.map((suggestion) => {
+            if(!suggestion) {
+                return null;
+            }
+            return (
+                <AISuggestion 
+                    key={suggestion} 
+                    onClick={() => {
+                        form.setValue("message", suggestion, {
+                            shouldValidate: true, 
+                            shouldDirty: true,
+                            shouldTouch: true
+                        });
+                        form.handleSubmit(onSubmit)();
+                    }}
+                    suggestion={suggestion}
+                />
+            )
+        })}
+        </AISuggestions>
+        
+    )}
+  
     <Form {...form}>
             <AIInput
                 className="rounded-none border-x-0 border-b-0"

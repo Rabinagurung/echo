@@ -23,7 +23,6 @@ import { widgetSettingsSchema } from '../../schemas';
 import { FormSchema } from '../../types';
 
 
-
 type WidgetSettings = Doc<"widgetSettings"> ;
 
 interface CustomizationFormProps {
