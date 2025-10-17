@@ -9,6 +9,8 @@ import WidgetLoadingScreen from '@/modules/widget/ui/screens/widget-loading-scre
 import WidgetSelectionScreen from '@/modules/widget/ui/screens/widget-selection-screen';
 import WidgetChatScreen from '@/modules/widget/ui/screens/widget-chat-screen';
 import WidgetInboxScreen from '../screens/widget-inbox-screen';
+import WidgetVoiceScreen from '../screens/widget-voice-screen';
+import WidgetContactScreen from '../screens/widget-contact-screen';
 
 interface Props {
     organizationId: string | null
@@ -27,8 +29,8 @@ const WidgetView = ({organizationId}: Props) => {
     selection: <WidgetSelectionScreen/>, 
     inbox: <WidgetInboxScreen/>, 
     chat: <WidgetChatScreen/>, 
-    voice: <p>voice</p>,
-    contact: <p>contact</p>, 
+    voice: <WidgetVoiceScreen/>,
+    contact: <WidgetContactScreen/>, 
   }
 
     //Todo: min-h-screen min-w-screen not sure about why widgetView didnt take full screen space
