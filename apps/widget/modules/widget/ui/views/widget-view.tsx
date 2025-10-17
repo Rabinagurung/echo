@@ -33,9 +33,8 @@ const WidgetView = ({organizationId}: Props) => {
     contact: <WidgetContactScreen/>, 
   }
 
-    //Todo: min-h-screen min-w-screen not sure about why widgetView didnt take full screen space
   return (
-    <main className='flex flex-col w-full h-full min-h-screen min-w-screen  overflow-hidden rounded-xl border bg-muted'>
+    <main className='flex flex-col w-full h-full overflow-hidden rounded-xl border bg-muted'>
       {screenComponents[screen]}
     </main>
   )
