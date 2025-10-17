@@ -15,7 +15,7 @@ import {useThreadMessages, toUIMessages} from "@convex-dev/agent/react";
 import {useInfiniteScroll} from "@workspace/ui/hooks/useInfiniteScroll";
 import InfiniteScrollTrigger from "@workspace/ui/components/infinite-scroll-trigger";
 import DicebearAvatar from "@workspace/ui/components/dicebear-avatar";
-import {AIConversation, AIConversationContent, AIConversationScrollButton} from "@workspace/ui/components/ai/conversation";
+import {AIConversation, AIConversationContent} from "@workspace/ui/components/ai/conversation";
 import {AIInput, AIInputSubmit ,AIInputTextarea, AIInputToolbar, AIInputTools } from "@workspace/ui/components/ai/input";
 import {AIMessage, AIMessageContent } from "@workspace/ui/components/ai/message";
 import {AIResponse } from "@workspace/ui/components/ai/response";
