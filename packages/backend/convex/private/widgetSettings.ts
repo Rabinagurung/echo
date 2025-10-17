@@ -43,6 +43,7 @@ export const upsert = mutation({
 
 
         if(existingWidgetSettings) {
+            //enforcing one widgetsettings per organization
             await ctx.db.patch(existingWidgetSettings._id, {
                 greetMessage: args.greetMessage, 
                 defaultSuggestions: args.defaultSuggestions, 

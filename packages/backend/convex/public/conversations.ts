@@ -25,19 +25,25 @@ export const create = mutation({
             })
         }
 
+        //loading widgetSettings to display greetMessage set by customers for their chat. 
+        const widgetSettings = await ctx.db
+            .query("widgetSettings")
+            .withIndex("by_organization_id", (q) => q.eq("organizationId", args.organizationId))
+            .unique();
+
         // userId should be organizationId thats how we willl associate thread with
        const { threadId } = await supportAgent.createThread(ctx, {
             userId: args.organizationId
         });
 
-        console.log({threadId});
+    
 
         // TODO: later modify to widget settings initial message(allow users to customize inital message)
         await saveMessage(ctx, components.agent, {
             threadId, 
             message: {
                 role: "assistant", 
-                content: "Hello, How can I help you today"
+                content: `${widgetSettings?.greetMessage || "Hello, How can I help you today?"}`
             }
         })
 

@@ -3,9 +3,9 @@
 import {  LoaderIcon } from "lucide-react";
 import WidgetHeader from "../components/widget-header";
 import { useAtomValue, useSetAtom } from "jotai";
-import { contactSessionIdAtomFamily, errorMessageAtom, loadingMessageAtom, organizationIdAtom, screenAtom } from "../../atoms/widget-atoms";
+import { contactSessionIdAtomFamily, errorMessageAtom, loadingMessageAtom, organizationIdAtom, screenAtom, widgetSettingsAtom } from "../../atoms/widget-atoms";
 import { useEffect, useState } from "react";
-import { useAction, useMutation } from "convex/react";
+import { useAction, useMutation, useQuery } from "convex/react";
 import { api } from "@workspace/backend/_generated/api";
 
 
@@ -18,6 +18,7 @@ const WidgetLoadingScreen = ({organizationId}: {organizationId: string| null}) =
 
     const loadingMessage = useAtomValue(loadingMessageAtom);
     const  setOrganizationId= useSetAtom(organizationIdAtom);
+    const  setWidgetSettings= useSetAtom(widgetSettingsAtom);
     const  setScreen= useSetAtom(screenAtom); 
     const setErrorMessage = useSetAtom(errorMessageAtom);
     const setLoadingMessage = useSetAtom(loadingMessageAtom);
@@ -29,7 +30,7 @@ const WidgetLoadingScreen = ({organizationId}: {organizationId: string| null}) =
     console.log({contactSessionId});
 
     const validateOrganizationId = useAction(api.public.organizations.validate)
-    
+
     useEffect(() => {
        
         if(step !== "org") return;
@@ -61,16 +62,16 @@ const WidgetLoadingScreen = ({organizationId}: {organizationId: string| null}) =
                 setScreen("error")
             })
 
-    }, [
-        step,
-        setLoadingMessage,
-        organizationId, 
-        setErrorMessage, 
-        setScreen, 
-        validateOrganizationId, 
-        setOrganizationId, 
-        setStep
-    ])
+    },  [
+    step,
+    organizationId,
+    setErrorMessage,
+    setScreen,
+    setOrganizationId,
+    setStep,
+    validateOrganizationId,
+    setLoadingMessage
+  ])
 
 
     //Validate contact session if exists 
@@ -85,7 +86,7 @@ const WidgetLoadingScreen = ({organizationId}: {organizationId: string| null}) =
 
         if(!contactSessionId) {
             setSessionValid(false)
-            setStep("done")
+            setStep("settings")
             return  
         }
          
@@ -94,26 +95,36 @@ const WidgetLoadingScreen = ({organizationId}: {organizationId: string| null}) =
         validateContactSession({contactSessionId})
         .then((result) => {
             setSessionValid(result.valid)
-            setStep("done")
+            setStep("settings")
         })
         .catch(()=>{
             setSessionValid(false);
-            setStep("done")
+            setStep("settings")
         })
         
-    }, [
-        step,
-        setLoadingMessage,
-        contactSessionId,
-        organizationId, 
-        setErrorMessage, 
-        setScreen, 
-        validateOrganizationId, 
-        setStep,
-        setSessionValid
-    ])
-    
+    }, [step, contactSessionId, validateContactSession, setLoadingMessage])
 
+    //step3: load widget settings 
+
+    const widgetSettings = useQuery(api.public.widgetSettings.getByOrganizationId, 
+        organizationId ? { 
+            organizationId
+        } : "skip"
+    ); 
+
+    useEffect(()=>{
+        if(step !== "settings") return;
+
+        setLoadingMessage("Loading widget settings...")
+
+        if(widgetSettings !== undefined) {
+            setWidgetSettings(widgetSettings); 
+            setStep("done");
+        }
+    },[step, widgetSettings, setWidgetSettings, setLoadingMessage]); 
+
+
+    //step3: load widget settings 
     useEffect(()=>{
         if(step !== "done") return;
          console.log("3rd use effect")

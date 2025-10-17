@@ -1,7 +1,7 @@
 import {atom} from "jotai"; 
 import { WidgetScreen } from "../types";
 import { atomFamily, atomWithStorage } from "jotai/utils";
-import { Id } from "@workspace/backend/_generated/dataModel";
+import { Doc, Id } from "@workspace/backend/_generated/dataModel";
 import { CONTACT_SESSION_KEY } from "../constants";
 
 
@@ -72,3 +72,6 @@ export const organizationIdAtom = atom<string | null>(null);
  * - Set by flows that open or join a specific conversation thread.
  */
 export const conversationIdAtom = atom<Id<"conversations"> | null>(null);
+
+export const widgetSettingsAtom = atom<Doc<"widgetSettings"> | null>(null);
+
