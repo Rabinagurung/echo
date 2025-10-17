@@ -105,7 +105,6 @@ const WidgetLoadingScreen = ({organizationId}: {organizationId: string| null}) =
     }, [step, contactSessionId, validateContactSession, setLoadingMessage])
 
     //step3: load widget settings 
-
     const widgetSettings = useQuery(api.public.widgetSettings.getByOrganizationId, 
         organizationId ? { 
             organizationId

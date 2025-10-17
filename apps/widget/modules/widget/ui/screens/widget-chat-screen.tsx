@@ -46,7 +46,6 @@ const WidgetChatScreen = () =>{
         }
     });
 
-    
     const onBack = () => {
         setConversationId(null);
         setScreen("selection")
@@ -61,8 +60,6 @@ const WidgetChatScreen = () =>{
             ]
         });
     },[widgetSettings]);
-
-    console.log({suggestions});
 
     const conversation = useQuery(api.public.conversations.getOne, 
         conversationId && contactSessionId ? {
