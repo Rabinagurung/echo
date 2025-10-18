@@ -38,7 +38,6 @@ export default defineSchema({
     
     ,
 
-
     conversations: defineTable({
         threadId: v.string(),
         organizationId: v.string(), 
