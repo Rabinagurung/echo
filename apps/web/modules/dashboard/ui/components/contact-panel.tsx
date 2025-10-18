@@ -83,18 +83,18 @@ const ContactPanel = () => {
                     {
                         label: "Browser", 
                         value: userAgentInfo.browser + 
-                        ( userAgentInfo.browserVersion ? `${userAgentInfo.browserVersion}`  : "") , 
+                        (userAgentInfo.browserVersion ? ` ${userAgentInfo.browserVersion}` : "") , 
                     }, 
 
                     {
                         label: "OS", 
                         value: userAgentInfo.os + 
-                        (userAgentInfo.osVersion ? `${userAgentInfo.osVersion}` : "") , 
+                        (userAgentInfo.osVersion ? ` ${userAgentInfo.osVersion}` : "") ,
                     }, 
                     {
                         label: "Device",
                         value: userAgentInfo.device + 
-                        (userAgentInfo.deviceModel ? `${userAgentInfo.deviceModel}` : ""),
+                        (userAgentInfo.deviceModel ? ` ${userAgentInfo.deviceModel}` : ""),
                         className: "capitalize"
                     }, 
                     {
@@ -208,7 +208,7 @@ const ContactPanel = () => {
                             key={section.id}
                             value={section.id}
                             className='rounded-none outline-none has-focus-visible:z-10 
-                            has-focus-visible:bor-ring has-focus-visible:ring-[3px] 
+                            has-focus-visible:border-ring has-focus-visible:ring-[3px] 
                             has-focus-visible:ring-ring-ring/50'
                         >
                             <AccordionTrigger 
