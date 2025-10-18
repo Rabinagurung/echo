@@ -3,6 +3,15 @@ import { v } from "convex/values";
 
 
 export default defineSchema({
+
+    subscriptions: defineTable({
+        organizationId: v.string(), 
+        status: v.string()
+    })
+    .index("by_organization_id", ["organizationId"]),
+
+
+
     /**
      * Convex schema for plugin configurations.
      *
@@ -21,6 +30,8 @@ export default defineSchema({
     .index("by_organization_id", ["organizationId"])
     .index("by_organization_id_and_service", ["organizationId", "service"]),
 
+
+
     widgetSettings: defineTable({
         organizationId: v.string(),
         greetMessage: v.string(),
@@ -34,9 +45,9 @@ export default defineSchema({
             phoneNumber: v.optional(v.string()),
         }),
     })
-    .index("by_organization_id", ["organizationId"])
-    
-    ,
+    .index("by_organization_id", ["organizationId"]),
+
+
 
     conversations: defineTable({
         threadId: v.string(),
@@ -55,6 +66,7 @@ export default defineSchema({
     .index("by_status_and_organization_id", ["status","organizationId"])
     ,
 
+    
     contactSessions: defineTable({
         name: v.string(), 
         email: v.string(), 
@@ -77,6 +89,7 @@ export default defineSchema({
     })
     .index("by_organization_id", ["organizationId"])
     .index("by_expires_at", ["expiresAt"]),
+
 
     users: defineTable({
         name: v.string()
