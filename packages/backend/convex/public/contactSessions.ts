@@ -1,16 +1,6 @@
 import { v } from "convex/values";
 import { mutation } from "../_generated/server";
-
-/**
- * Contact session lifetime in milliseconds (24 hours).
- *
- * @constant
- * @default 86,400,000 ms
- * @remarks
- * - Keeps sessions short-lived to reduce stale data and exposure surface.
- */
-const SESSION_DURATION_MS = 24 * 60* 60* 1000;
-
+import { SESSION_DURATION_MS } from "../constants";
 
 
 /**

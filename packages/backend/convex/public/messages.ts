@@ -31,6 +31,7 @@ export const create = action({
                 message: "Invalid session"
             })
         
+
         const conversation = await ctx.runQuery(
             internal.system.conversations.getByThreadId, 
             {
@@ -38,7 +39,6 @@ export const create = action({
             }
         )
 
-        console.log({conversation})
         
         if(!conversation) 
             throw new ConvexError({
@@ -55,23 +55,31 @@ export const create = action({
             });
         }
         
-        if(conversation.status === "resolved") 
+        if(conversation.status === "resolved")  {
             throw new ConvexError({
                 code: "BAD_REQUEST", 
                 message: "Conversation is resolved"
             })
+        }
+           
+        //After all validation, refresh the user's session if they are within AUT0_REFRESH_THRESHOLD_MS(4 hours)
+        await ctx.runMutation(internal.system.contactSessions.refresh, {
+            contactSessionId: args.contactSessionId
+        })
 
-        //Implement subscription check
-        //If the status is unresolved then agent can create message.
+        //Implemented subscription check because agents are used only for pro users
+        const subscription = await ctx.runQuery(
+            internal.system.subscriptions.getByOrganizationId, 
+            {
+                organizationId: conversation.organizationId
+            
+            }
+        );
+
+        //If the status is unresolved and subscription?.status is active, then agent can create message.
         //If the status is resolved nor agent nor user nor operator can create message.
         //If the status is escalated only operator can create message to user and agent is not allowed.
-
-        const shouldTriggerAgent =
-        conversation.status === "unresolved";
-
-        console.log("Hi")
-
-      
+        const shouldTriggerAgent = conversation.status === "unresolved" && subscription?.status === "active";
 
         if(shouldTriggerAgent) {
             await supportAgent.generateText(

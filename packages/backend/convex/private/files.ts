@@ -6,6 +6,7 @@ import rag from "../system/ai/rag";
 import { extractTextContent } from "../lib/extractTextContent";
 import { Id } from "../_generated/dataModel";
 import { paginationOptsValidator } from "convex/server";
+import { internal } from "../_generated/api";
 
 
 const guessMimeType = (filename: string, bytes: ArrayBuffer): string =>{
@@ -63,10 +64,22 @@ export const addFile = action({
 
     handler: async (ctx, args) =>{
 
-        console.log("add RAG FILE");
 
         // Verify identity and get the organization ID
         const orgId = await checkUserIdentityAndGetOrgId(ctx); 
+
+        //Only pro customers can add files for knowledge base
+        const subscription = await ctx.runQuery(internal.system.subscriptions.getByOrganizationId, {
+            organizationId: orgId
+        });
+        
+        if(subscription?.status !== "active") {
+            throw new ConvexError({
+                code: "BAD_REQUEST", 
+                message: "Missing subscription"
+            })
+
+        }
 
         const {filename, bytes, category} = args;
         const mimeType = args.mimeType || guessMimeType(filename, bytes)
