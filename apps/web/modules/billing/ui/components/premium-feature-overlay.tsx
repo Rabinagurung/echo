@@ -40,11 +40,11 @@ const features: Feature[] = [
     {
         icon: UsersIcon,
         label: "Team Access",
-        description: "Up to 5 customers per organization"
+        description: "Up to 5 members per organization"
     }, 
      {
         icon: PaletteIcon,
-        label: "Widget Customization Access",
+        label: "Widget Customization",
         description: "Customize your chat widget appearance"
     }
 ]
