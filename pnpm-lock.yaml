@@ -24,7 +24,7 @@ importers:
         specifier: 5.9.2
         version: 5.9.2
 
-  apps/emed:
+  apps/embed:
     devDependencies:
       '@types/node':
         specifier: ^20.19.9
