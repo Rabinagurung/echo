@@ -1,12 +1,12 @@
 import { toast } from "sonner";
-import { HTML_SCRIPT, IntegrationId, JAVASCRIPT_SCRIPT, REACT_SCRIPT } from "./constants";
+import { HTML_SCRIPT, IntegrationId, JAVASCRIPT_SCRIPT, REACT_SCRIPT, NEXTJS_SCRIPT } from "./constants";
 
 export const createScript = (integrationId: IntegrationId, organizationId: string): string => {
   const scriptMap: Partial<Record<IntegrationId, string>> = {
     html: HTML_SCRIPT,
     react: REACT_SCRIPT,
     javascript: JAVASCRIPT_SCRIPT,
-    nextjs: JAVASCRIPT_SCRIPT,
+    nextjs: NEXTJS_SCRIPT,
   };
 
   const script = scriptMap[integrationId];
