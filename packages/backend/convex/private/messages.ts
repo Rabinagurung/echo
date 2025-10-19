@@ -1,6 +1,6 @@
 import { ConvexError, v } from "convex/values";
 import { action, mutation, query } from "../_generated/server";
-import { components} from "../_generated/api";
+import { components, internal} from "../_generated/api";
 import { supportAgent } from "../system/ai/agents/supportAgent";
 import { paginationOptsValidator } from "convex/server";
 import { checkUserIdentityAndGetOrgId } from "./checkUserIdentityAndGetOrgId";
@@ -103,7 +103,22 @@ export const enhanceResponse = action({
 
     handler: async(ctx, args) =>{
 
-        const orgId = checkUserIdentityAndGetOrgId(ctx)
+        const orgId = await checkUserIdentityAndGetOrgId(ctx)
+        
+        //Only pro customers can ENHANCE RESPONSE
+        const subscription = await ctx.runQuery(
+            internal.system.subscriptions.getByOrganizationId, 
+        {
+            organizationId: orgId
+        });
+
+        if(subscription?.status !== "active") {
+            throw new ConvexError({
+                code: "BAD_REQUEST", 
+                message: "Missing subscription"
+            })
+
+        }
 
         const response = await generateText({
             model: google("gemini-2.0-flash"), 

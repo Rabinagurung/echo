@@ -35,6 +35,7 @@ import { Form, FormField } from "@workspace/ui/components/form";
 import ConversationStatusButton from '../components/conversation-status-button';
 import { Skeleton } from '@workspace/ui/components/skeleton';
 import { cn } from '@workspace/ui/lib/utils';
+import { toast } from 'sonner';
 
 
 interface ConversationDetailsViewProps {
@@ -106,6 +107,7 @@ export const ConversationDetailsView = ({conversationId}: ConversationDetailsVie
             form.setValue("message", response);
             
         } catch (error) {
+            toast.error("Something went wrong")
             console.error(error);
             
         }finally{

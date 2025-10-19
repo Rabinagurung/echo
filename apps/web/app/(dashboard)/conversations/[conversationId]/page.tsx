@@ -1,4 +1,4 @@
-import {ConversationDetailsView} from '@/modules/dashboard/ui/views/ConversationDetailsView';
+import {ConversationDetailsView} from '@/modules/dashboard/ui/views/conversation-details-view';
 import { Id } from '@workspace/backend/_generated/dataModel';
 import React from 'react'
 

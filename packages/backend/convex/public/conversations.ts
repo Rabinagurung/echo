@@ -2,7 +2,7 @@ import { ConvexError, v } from "convex/values";
 import { mutation, query } from "../_generated/server";
 import { supportAgent } from "../system/ai/agents/supportAgent";
 import { MessageDoc, saveMessage } from "@convex-dev/agent";
-import { components } from "../_generated/api";
+import { components, internal } from "../_generated/api";
 import { paginationOptsValidator } from "convex/server";
 
 
@@ -25,6 +25,11 @@ export const create = mutation({
             })
         }
 
+         //After all validation, refresh the user's session if they are within AUT0_REFRESH_THRESHOLD_MS(4 hours)
+        await ctx.runMutation(internal.system.contactSessions.refresh, {
+            contactSessionId: args.contactSessionId
+        })
+
         //loading widgetSettings to display greetMessage set by customers for their chat. 
         const widgetSettings = await ctx.db
             .query("widgetSettings")
@@ -37,7 +42,6 @@ export const create = mutation({
         });
 
     
-
         // TODO: later modify to widget settings initial message(allow users to customize inital message)
         await saveMessage(ctx, components.agent, {
             threadId, 
