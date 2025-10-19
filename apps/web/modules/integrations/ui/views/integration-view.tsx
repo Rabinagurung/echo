@@ -31,7 +31,6 @@ export const IntegrationView = () => {
     setDialogOpen(true);
   }
 
-
   return (
    <>
     <IntegrationDialog open={dialogOpen} onOpenChange={setDialogOpen} snippet={selectedSnippet}/>
@@ -44,7 +43,7 @@ export const IntegrationView = () => {
       </div>
       <div className="mt-8 space-y-6">
         <div className="flex items-center gap-4">
-          <Label className="w-[34px]" htmlFor="organization-id">
+          <Label className="w-34px" htmlFor="organization-id">
             Organization ID
           </Label>
           <Input 
