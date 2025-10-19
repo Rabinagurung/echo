@@ -10,10 +10,10 @@ const PricingTable = () => {
             forOrganizations
             appearance={{
                 elements: {
-                    pricingTableCard: "shadow-none! border! rounded-lg!", 
-                    pricingTableCardHeader: "bg-background!", 
-                    pricingTableCardBody: "bg-background!", 
-                    pricingTableCardFooter: "bg-background!"
+                  pricingTableCard: "!shadow-none border rounded-lg!", 
+                  pricingTableCardHeader: "!bg-background!", 
+                  pricingTableCardBody: "!bg-background!", 
+                  pricingTableCardFooter: "!bg-background!"
                 }
             }}
             />
