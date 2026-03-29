@@ -1,37 +1,7 @@
 import { v } from "convex/values";
 import { mutation } from "../_generated/server";
 import { SESSION_DURATION_MS } from "../constants";
-
-/**
- * Check whether a given origin is allowed by the configured domain list.
- *
- * Supports exact hostname match (e.g. "example.com") and wildcard subdomains
- * (e.g. "*.example.com" matches "app.example.com" but not "example.com" itself).
- *
- * Returns `true` if `allowedDomains` is empty/undefined (backwards-compatible open access).
- */
-function isOriginAllowed(
-  origin: string,
-  allowedDomains: string[] | undefined,
-): boolean {
-  if (!allowedDomains || allowedDomains.length === 0) return true;
-
-  let hostname: string;
-  try {
-    hostname = new URL(origin).hostname;
-  } catch {
-    return false;
-  }
-
-  return allowedDomains.some((domain) => {
-    const d = domain.trim().toLowerCase();
-    if (d.startsWith("*.")) {
-      const base = d.slice(2); // e.g. "example.com"
-      return hostname === base || hostname.endsWith("." + base);
-    }
-    return hostname === d;
-  });
-}
+import { validateOrigin } from "../lib/validateOrigin";
 
 /**
  * Create a new contact session for a user within an organization.
@@ -80,24 +50,7 @@ export const create = mutation({
 
   handler: async (ctx, args) => {
     // Validate origin against allowed domains
-    const widgetSettings = await ctx.db
-      .query("widgetSettings")
-      .withIndex("by_organization_id", (q) =>
-        q.eq("organizationId", args.organizationId),
-      )
-      .unique();
-
-    if (
-      widgetSettings?.allowedDomains &&
-      widgetSettings.allowedDomains.length > 0
-    ) {
-      if (
-        !args.origin ||
-        !isOriginAllowed(args.origin, widgetSettings.allowedDomains)
-      ) {
-        throw new Error("This domain is not authorized to use this widget");
-      }
-    }
+    await validateOrigin(ctx, args.organizationId, args.origin);
 
     const now = Date.now();
     const expiresAt = now + SESSION_DURATION_MS;

@@ -146,19 +146,17 @@ export default function LandingPage() {
           </Link>
           <div className="flex items-center gap-3">
             {isSignedIn ? (
-              <Link href="/conversations">
-                <Button size="sm">Dashboard</Button>
-              </Link>
+              <Button asChild size="sm">
+                <Link href="/conversations">Dashboard</Link>
+              </Button>
             ) : (
               <>
-                <Link href="/sign-in">
-                  <Button variant="ghost" size="sm">
-                    Sign In
-                  </Button>
-                </Link>
-                <Link href="/sign-up">
-                  <Button size="sm">Get Started</Button>
-                </Link>
+                <Button asChild variant="ghost" size="sm">
+                  <Link href="/sign-in">Sign In</Link>
+                </Button>
+                <Button asChild size="sm">
+                  <Link href="/sign-up">Get Started</Link>
+                </Button>
               </>
             )}
           </div>

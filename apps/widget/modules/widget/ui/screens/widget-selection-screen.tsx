@@ -9,6 +9,7 @@ import { useMutation } from "convex/react";
 import { api } from "@workspace/backend/_generated/api";
 import { useState } from "react";
 import WidgetFooter from "../components/widget-footer";
+import { getEmbeddingOrigin } from "@/lib/get-embedding-origin";
 
 
 const WidgetSelectionScreen = () =>{
@@ -40,7 +41,7 @@ const WidgetSelectionScreen = () =>{
 
         setIsPending(true)
         try {
-             const conversationId = await createConversation({organizationId, contactSessionId})
+             const conversationId = await createConversation({organizationId, contactSessionId, origin: getEmbeddingOrigin()})
              setConversationId(conversationId);
              setScreen("chat")
         } catch (error) {

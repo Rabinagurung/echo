@@ -21,6 +21,7 @@ import {AIMessage, AIMessageContent } from "@workspace/ui/components/ai/message"
 import {AIResponse } from "@workspace/ui/components/ai/response";
 import {AISuggestion, AISuggestions } from "@workspace/ui/components/ai/suggestion";
 import { useMemo } from "react";
+import { getEmbeddingOrigin } from "@/lib/get-embedding-origin";
 
 
 
@@ -103,9 +104,11 @@ const WidgetChatScreen = () =>{
         console.log( data.message)
         
         await createMessage({
-            threadId: conversation.threadId, 
+            threadId: conversation.threadId,
             prompt: data.message,
-            contactSessionId, 
+            contactSessionId,
+            organizationId: organizationId || undefined,
+            origin: getEmbeddingOrigin(),
         })
 
    };

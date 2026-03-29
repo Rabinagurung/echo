@@ -12,11 +12,24 @@ import { search } from "../system/ai/tools/search";
 // promt is given by user in front end
 export const create = action({
     args:{
-        prompt: v.string(), 
+        prompt: v.string(),
         threadId: v.string(), //we get threadId from conversation
         contactSessionId: v.id("contactSessions"),
-    }, 
+        organizationId: v.optional(v.string()),
+        origin: v.optional(v.string()),
+    },
     handler: async(ctx, args) =>{
+
+        // Validate origin against allowed domains (if organizationId provided)
+        if (args.organizationId) {
+            await ctx.runQuery(
+                internal.system.widgetSettings.validateOrigin,
+                {
+                    organizationId: args.organizationId,
+                    origin: args.origin,
+                }
+            );
+        }
 
         const contactSession = await ctx.runQuery(
             internal.system.contactSessions.getOne, 

@@ -4,15 +4,20 @@ import { supportAgent } from "../system/ai/agents/supportAgent";
 import { MessageDoc, saveMessage } from "@convex-dev/agent";
 import { components, internal } from "../_generated/api";
 import { paginationOptsValidator } from "convex/server";
+import { validateOrigin } from "../lib/validateOrigin";
 
 
 export const create = mutation({
     args: {
         contactSessionId: v.id("contactSessions"),
-        organizationId: v.string(), 
-    }, 
+        organizationId: v.string(),
+        origin: v.optional(v.string()),
+    },
 
     handler: async(ctx, args) =>{
+
+        // Validate origin against allowed domains
+        await validateOrigin(ctx, args.organizationId, args.origin);
 
         const session = await ctx.db.get(args.contactSessionId); 
 

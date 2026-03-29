@@ -16,6 +16,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@workspace/ui/components/button";
 
 import { Input } from "@workspace/ui/components/input";
+import { toast } from "@workspace/ui/components/sonner";
 import { useMutation } from "convex/react";
 import { api } from "@workspace/backend/_generated/api";
 import { Doc } from "@workspace/backend/_generated/dataModel";
@@ -25,6 +26,7 @@ import {
   organizationIdAtom,
   screenAtom,
 } from "../../atoms/widget-atoms";
+import { getEmbeddingOrigin } from "@/lib/get-embedding-origin";
 
 const FormSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -101,17 +103,25 @@ const WidgetAuthScreen = () => {
       currentUrl: window.location.href,
     };
 
-    // 1) Create the contact session (server)
-    const contactSessionId = await createContactSession({
-      ...data,
-      organizationId,
-      origin: window.location.origin,
-      metadata,
-    });
+    try {
+      // 1) Create the contact session (server)
+      const contactSessionId = await createContactSession({
+        ...data,
+        organizationId,
+        origin: getEmbeddingOrigin(),
+        metadata,
+      });
 
-    // 2) Persist id + navigate to next screen (client)
-    setContactSessionId(contactSessionId);
-    setScreen("selection");
+      // 2) Persist id + navigate to next screen (client)
+      setContactSessionId(contactSessionId);
+      setScreen("selection");
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Unable to start the chat. Please try again.",
+      );
+    }
   };
 
   return (
@@ -174,4 +184,3 @@ const WidgetAuthScreen = () => {
 };
 
 export default WidgetAuthScreen;
-

@@ -11,7 +11,9 @@
 import type * as constants from "../constants.js";
 import type * as http from "../http.js";
 import type * as lib_extractTextContent from "../lib/extractTextContent.js";
+import type * as lib_isOriginAllowed from "../lib/isOriginAllowed.js";
 import type * as lib_secrets from "../lib/secrets.js";
+import type * as lib_validateOrigin from "../lib/validateOrigin.js";
 import type * as playground from "../playground.js";
 import type * as private_checkUserIdentityAndGetOrgId from "../private/checkUserIdentityAndGetOrgId.js";
 import type * as private_contactSessions from "../private/contactSessions.js";
@@ -39,6 +41,7 @@ import type * as system_conversations from "../system/conversations.js";
 import type * as system_plugins from "../system/plugins.js";
 import type * as system_secrets from "../system/secrets.js";
 import type * as system_subscriptions from "../system/subscriptions.js";
+import type * as system_widgetSettings from "../system/widgetSettings.js";
 import type * as users from "../users.js";
 
 import type {
@@ -51,7 +54,9 @@ declare const fullApi: ApiFromModules<{
   constants: typeof constants;
   http: typeof http;
   "lib/extractTextContent": typeof lib_extractTextContent;
+  "lib/isOriginAllowed": typeof lib_isOriginAllowed;
   "lib/secrets": typeof lib_secrets;
+  "lib/validateOrigin": typeof lib_validateOrigin;
   playground: typeof playground;
   "private/checkUserIdentityAndGetOrgId": typeof private_checkUserIdentityAndGetOrgId;
   "private/contactSessions": typeof private_contactSessions;
@@ -79,6 +84,7 @@ declare const fullApi: ApiFromModules<{
   "system/plugins": typeof system_plugins;
   "system/secrets": typeof system_secrets;
   "system/subscriptions": typeof system_subscriptions;
+  "system/widgetSettings": typeof system_widgetSettings;
   users: typeof users;
 }>;
 

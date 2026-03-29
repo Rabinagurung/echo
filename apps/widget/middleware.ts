@@ -59,7 +59,7 @@ export async function middleware(request: NextRequest) {
         `frame-ancestors 'self' ${sources}`,
       );
     } else {
-      response.headers.set("Content-Security-Policy", "frame-ancestors *");
+      response.headers.set("Content-Security-Policy", "frame-ancestors 'self'");
     }
   } catch {
     // If the fetch fails, block all framing to be safe
