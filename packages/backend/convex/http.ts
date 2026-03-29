@@ -6,81 +6,117 @@ import type { WebhookEvent } from "@clerk/backend";
 import { internal } from "./_generated/api";
 
 const clerkClient = createClerkClient({
-    secretKey: process.env.CLERK_SECRET_KEY
+  secretKey: process.env.CLERK_SECRET_KEY,
 });
 
-const http = httpRouter(); 
+const http = httpRouter();
 
 http.route({
-    path: "/clerk-webhook", 
-    method: "POST", 
-    handler: httpAction(async(ctx, request) => {
-        const event = await validateRequest(request); 
+  path: "/clerk-webhook",
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    const event = await validateRequest(request);
 
-        if(!event) {
-            throw new Response("Error occured", { status: 400 })
+    if (!event) {
+      throw new Response("Error occured", { status: 400 });
+    }
+
+    switch (event.type) {
+      case "subscription.updated": {
+        const subscription = event.data as {
+          status: string;
+          payer?: {
+            organization_id: string;
+          };
+        };
+
+        const organizationId = subscription.payer?.organization_id;
+        if (!organizationId) {
+          return new Response("Missing Organization ID", { status: 400 });
         }
 
-        switch(event.type){
-            case "subscription.updated" : {
-                const subscription = event.data as {
-                    status: string;
-                    payer?: {
-                        organization_id: string;
-                    } 
-                };
+        const newMaxAllowedMembership =
+          subscription.status === "active" ? 5 : 1;
 
-                const organizationId = subscription.payer?.organization_id;
-                if(!organizationId) {
-                    return new Response("Missing Organization ID", { status: 400 });
-                };
+        await clerkClient.organizations.updateOrganization(organizationId, {
+          maxAllowedMemberships: newMaxAllowedMembership,
+        });
 
-                const newMaxAllowedMembership = subscription.status === "active" ? 5 : 1; 
+        await ctx.runMutation(internal.system.subscriptions.upsert, {
+          organizationId,
+          status: subscription.status,
+        });
+        break;
+      }
 
-                await clerkClient.organizations.updateOrganization(organizationId, {
-                    maxAllowedMemberships: newMaxAllowedMembership
-                });
+      default:
+        console.log("Ignored Clerk Webhook event", event.type);
+    }
 
-                await ctx.runMutation(internal.system.subscriptions.upsert, {
-                    organizationId, 
-                    status: subscription.status
-                })
-                 break; 
-            }
-
-            default: 
-                console.log("Ignored Clerk Webhook event", event.type);
-        }
-
-        //ALWAYS return something from end of webhook otherwise considered failure 
-        return new Response(null, { status: 200 });
-    }),
+    //ALWAYS return something from end of webhook otherwise considered failure
+    return new Response(null, { status: 200 });
+  }),
 });
 
 /**
- * 
- * Who ever is trying to access this clerk wehbook endpoint is authorized to access it. 
- * Only thing that can access it is clerk itself. 
- * We have to make sure that their headers match exactly what needs to be decrypted 
- * when decrypted with our CLERK_WEBHOOK_SECRET. 
+ *
+ * Who ever is trying to access this clerk wehbook endpoint is authorized to access it.
+ * Only thing that can access it is clerk itself.
+ * We have to make sure that their headers match exactly what needs to be decrypted
+ * when decrypted with our CLERK_WEBHOOK_SECRET.
  */
-async function validateRequest(req: Request): Promise<WebhookEvent| null> {
+async function validateRequest(req: Request): Promise<WebhookEvent | null> {
+  const payloadString = await req.text();
+  const svixHeaders = {
+    "svix-id": req.headers.get("svix-id") || "",
+    "svix-timestamp": req.headers.get("svix-timestamp") || "",
+    "svix-signature": req.headers.get("svix-signature") || "",
+  };
 
-    const payloadString = await req.text(); 
-    const svixHeaders = {
-        "svix-id": req.headers.get("svix-id") || "", 
-        "svix-timestamp": req.headers.get("svix-timestamp") || "", 
-        "svix-signature": req.headers.get("svix-signature") || ""
-    }
+  const wehbook = new Webhook(process.env.CLERK_WEBHOOK_SECRET || "");
 
-    const wehbook = new Webhook(process.env.CLERK_WEBHOOK_SECRET || ""); 
-
-    try {
-        return wehbook.verify(payloadString, svixHeaders) as unknown as WebhookEvent
-    } catch (error) {
-        console.error(`Error verifying webhook event`, error)
-        return null;
-    }
+  try {
+    return wehbook.verify(
+      payloadString,
+      svixHeaders,
+    ) as unknown as WebhookEvent;
+  } catch (error) {
+    console.error(`Error verifying webhook event`, error);
+    return null;
+  }
 }
 
+http.route({
+  path: "/allowed-domains",
+  method: "GET",
+  handler: httpAction(async (ctx, request) => {
+    const url = new URL(request.url);
+    const organizationId = url.searchParams.get("organizationId");
+
+    if (!organizationId) {
+      return new Response(JSON.stringify({ allowedDomains: [] }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const widgetSettings = await ctx.runQuery(
+      internal.private.widgetSettings.getAllowedDomains,
+      { organizationId },
+    );
+
+    return new Response(
+      JSON.stringify({ allowedDomains: widgetSettings ?? [] }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
+      },
+    );
+  }),
+});
+
 export default http;
+
