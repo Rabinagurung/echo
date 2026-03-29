@@ -108,7 +108,7 @@ import { chatBubbleIcon, closeIcon } from './icons';
       border: none;
     `;
     // Add permissions for microphone and clipboard
-    iframe.allow = 'microphone; clipboard-read; clipboard-write';
+    iframe.allow = 'microphone; autoplay; clipboard-read; clipboard-write';
     
     container.appendChild(iframe);
     document.body.appendChild(container);

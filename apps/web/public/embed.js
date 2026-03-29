@@ -94,7 +94,7 @@
       height: 100%;
       border: none;
     `),
-        (n.allow = "microphone; clipboard-read; clipboard-write"),
+        (n.allow = "microphone; autoplay; clipboard-read; clipboard-write"),
         t.appendChild(n),
         document.body.appendChild(t),
         window.addEventListener("message", f));
