@@ -2,18 +2,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   transpilePackages: ["@workspace/ui"],
-  async redirects(){
-    return [
-      {
-        source: "/", 
-        destination: "/conversations", 
-        permanent: false
-      }
-    ]
-  }
-}
+};
 
-export default nextConfig
+export default nextConfig;
 
 // export default withSentryConfig(nextConfig, {
 //   // For all available options, see:
@@ -47,3 +38,4 @@ export default nextConfig
 //   // https://vercel.com/docs/cron-jobs
 //   automaticVercelMonitors: true,
 // });
+
