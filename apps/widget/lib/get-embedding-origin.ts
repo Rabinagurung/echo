@@ -1,7 +1,9 @@
 export function getEmbeddingOrigin(): string | undefined {
-  if (!document.referrer) return undefined;
+  const raw =
+    document.referrer || window.location.ancestorOrigins?.[0];
+  if (!raw) return undefined;
   try {
-    return new URL(document.referrer).origin;
+    return new URL(raw).origin;
   } catch {
     return undefined;
   }

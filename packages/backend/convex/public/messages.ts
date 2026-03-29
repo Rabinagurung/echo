@@ -15,24 +15,12 @@ export const create = action({
         prompt: v.string(),
         threadId: v.string(), //we get threadId from conversation
         contactSessionId: v.id("contactSessions"),
-        organizationId: v.optional(v.string()),
         origin: v.optional(v.string()),
     },
     handler: async(ctx, args) =>{
 
-        // Validate origin against allowed domains (if organizationId provided)
-        if (args.organizationId) {
-            await ctx.runQuery(
-                internal.system.widgetSettings.validateOrigin,
-                {
-                    organizationId: args.organizationId,
-                    origin: args.origin,
-                }
-            );
-        }
-
         const contactSession = await ctx.runQuery(
-            internal.system.contactSessions.getOne, 
+            internal.system.contactSessions.getOne,
             {
                 contactSessionId: args.contactSessionId
             }
@@ -40,24 +28,33 @@ export const create = action({
 
         if(!contactSession || contactSession.expiresAt < Date.now())
             throw new ConvexError({
-                code: "UNAUTHORIZED", 
+                code: "UNAUTHORIZED",
                 message: "Invalid session"
             })
-        
+
 
         const conversation = await ctx.runQuery(
-            internal.system.conversations.getByThreadId, 
+            internal.system.conversations.getByThreadId,
             {
                 threadId: args.threadId
             }
         )
 
-        
-        if(!conversation) 
+
+        if(!conversation)
             throw new ConvexError({
-                code: "NOT_FOUND", 
+                code: "NOT_FOUND",
                 message: "Conversation not found"
             })
+
+        // Validate origin against allowed domains using the conversation's organizationId
+        await ctx.runQuery(
+            internal.system.widgetSettings.validateOrigin,
+            {
+                organizationId: conversation.organizationId,
+                origin: args.origin,
+            }
+        );
 
 
         // Ensure the session owns this conversation/thread   

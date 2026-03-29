@@ -97,17 +97,16 @@ const WidgetChatScreen = () =>{
 
         if(!conversation || !contactSessionId){
              return;
-        } 
+        }
 
-        form.reset(); 
+        form.reset();
 
         console.log( data.message)
-        
+
         await createMessage({
             threadId: conversation.threadId,
             prompt: data.message,
             contactSessionId,
-            organizationId: organizationId || undefined,
             origin: getEmbeddingOrigin(),
         })
 

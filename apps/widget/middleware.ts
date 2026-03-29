@@ -24,10 +24,15 @@ export async function middleware(request: NextRequest) {
     // e.g. https://foo-123.convex.cloud → https://foo-123.convex.site
     const httpUrl = convexUrl.replace(".cloud", ".site");
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 2000);
+
     const res = await fetch(
       `${httpUrl}/allowed-domains?organizationId=${encodeURIComponent(organizationId)}`,
-      { next: { revalidate: 60 } }, // cache for 60s
+      { next: { revalidate: 60 }, signal: controller.signal },
     );
+
+    clearTimeout(timeout);
 
     if (!res.ok) {
       response.headers.set("Content-Security-Policy", "frame-ancestors 'self'");
