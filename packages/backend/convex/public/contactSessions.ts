@@ -2,36 +2,6 @@ import { v } from "convex/values";
 import { mutation } from "../_generated/server";
 import { SESSION_DURATION_MS } from "../constants";
 
-/**
- * Check whether a given origin is allowed by the configured domain list.
- *
- * Supports exact hostname match (e.g. "example.com") and wildcard subdomains
- * (e.g. "*.example.com" matches "app.example.com" but not "example.com" itself).
- *
- * Returns `true` if `allowedDomains` is empty/undefined (backwards-compatible open access).
- */
-function isOriginAllowed(
-  origin: string,
-  allowedDomains: string[] | undefined,
-): boolean {
-  if (!allowedDomains || allowedDomains.length === 0) return true;
-
-  let hostname: string;
-  try {
-    hostname = new URL(origin).hostname;
-  } catch {
-    return false;
-  }
-
-  return allowedDomains.some((domain) => {
-    const d = domain.trim().toLowerCase();
-    if (d.startsWith("*.")) {
-      const base = d.slice(2); // e.g. "example.com"
-      return hostname === base || hostname.endsWith("." + base);
-    }
-    return hostname === d;
-  });
-}
 
 /**
  * Create a new contact session for a user within an organization.
@@ -55,78 +25,57 @@ function isOriginAllowed(
  * - Indexed by `organizationId` and `expiresAt` for efficient query and cleanup operations.
  */
 export const create = mutation({
-  args: {
-    name: v.string(),
-    email: v.string(),
-    organizationId: v.string(),
-    origin: v.optional(v.string()),
-    metadata: v.optional(
-      v.object({
-        userAgent: v.optional(v.string()),
-        platform: v.optional(v.string()),
-        language: v.optional(v.string()),
-        languages: v.optional(v.string()),
-        vendor: v.optional(v.string()),
-        screenResolution: v.optional(v.string()),
-        viewportSize: v.optional(v.string()),
-        timezone: v.optional(v.string()),
-        timezoneOffset: v.optional(v.number()),
-        cookieEnabled: v.optional(v.boolean()),
-        referrer: v.optional(v.string()),
-        currentUrl: v.optional(v.string()),
-      }),
-    ),
-  },
+    args: {
+        name: v.string(), 
+        email: v.string(), 
+        organizationId: v.string(), 
+        metadata: v.optional(v.object({
+                userAgent: v.optional(v.string()),
+                platform: v.optional(v.string()),
+                language: v.optional(v.string()),
+                languages: v.optional(v.string()),
+                vendor: v.optional(v.string()),
+                screenResolution: v.optional(v.string()),
+                viewportSize: v.optional(v.string()),
+                timezone: v.optional(v.string()),
+                timezoneOffset: v.optional(v.number()),
+                cookieEnabled: v.optional(v.boolean()),
+                referrer: v.optional(v.string()),
+                currentUrl: v.optional(v.string()),  
+        }))
+    }, 
 
-  handler: async (ctx, args) => {
-    // Validate origin against allowed domains
-    const widgetSettings = await ctx.db
-      .query("widgetSettings")
-      .withIndex("by_organization_id", (q) =>
-        q.eq("organizationId", args.organizationId),
-      )
-      .unique();
+    handler: async(ctx, args) =>{
+        const now = Date.now(); 
+        const expiresAt = now + SESSION_DURATION_MS;
 
-    if (
-      widgetSettings?.allowedDomains &&
-      widgetSettings.allowedDomains.length > 0
-    ) {
-      if (
-        !args.origin ||
-        !isOriginAllowed(args.origin, widgetSettings.allowedDomains)
-      ) {
-        throw new Error("This domain is not authorized to use this widget");
-      }
+        const contactSessionId  = await ctx.db.insert("contactSessions",{
+            name: args.name, 
+            email: args.email,
+            organizationId:args.organizationId,
+            metadata:args.metadata, 
+            expiresAt
+        });
+
+        return contactSessionId;
     }
+})
 
-    const now = Date.now();
-    const expiresAt = now + SESSION_DURATION_MS;
 
-    const contactSessionId = await ctx.db.insert("contactSessions", {
-      name: args.name,
-      email: args.email,
-      organizationId: args.organizationId,
-      metadata: args.metadata,
-      expiresAt,
-    });
 
-    return contactSessionId;
-  },
-});
+
 
 export const validate = mutation({
-  args: {
-    contactSessionId: v.id("contactSessions"),
-  },
-  handler: async (ctx, args) => {
-    const contactSession = await ctx.db.get(args.contactSessionId);
+    args: {
+        contactSessionId: v.id("contactSessions")
+    }, 
+    handler: async(ctx, args) => {
 
-    if (!contactSession)
-      return { valid: false, reason: "Contact session not found" };
-    if (contactSession.expiresAt < Date.now())
-      return { valid: false, reason: "Contact Session Id has expired" };
+        const contactSession = await ctx.db.get(args.contactSessionId)
 
-    return { valid: true, contactSession };
-  },
-});
+        if(!contactSession) return {valid: false, reason: "Contact session not found"}
+        if(contactSession.expiresAt < Date.now()) return { valid: false, reason: "Contact Session Id has expired"}
 
+        return {valid: true, contactSession}
+    }
+})
