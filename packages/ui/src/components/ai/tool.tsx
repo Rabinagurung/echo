@@ -27,7 +27,7 @@ export const AITool = ({ className, ...props }: AIToolProps) => (
   <Collapsible
     className={cn(
       "not-prose mb-4 w-full rounded-md border bg-background",
-      className
+      className,
     )}
     {...props}
   />
@@ -71,7 +71,7 @@ export const AIToolHeader = ({
   <CollapsibleTrigger
     className={cn(
       "flex w-full items-center justify-between gap-4 p-3",
-      className
+      className,
     )}
     {...props}
   >
@@ -139,7 +139,7 @@ export const AIToolResult = ({
           "overflow-x-auto rounded-md p-3 text-xs",
           error
             ? "bg-destructive/10 text-destructive"
-            : "bg-muted/50 text-foreground"
+            : "bg-muted/50 text-foreground",
         )}
       >
         {error ? <div>{error}</div> : <div>{result}</div>}
