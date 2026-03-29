@@ -30,11 +30,19 @@ const WidgetLoadingScreen = ({organizationId}: {organizationId: string| null}) =
 
     console.log({contactSessionId});
 
+    // Block direct access — widget must be embedded in an iframe
+    useEffect(() => {
+        if (window.self === window.top) {
+            setErrorMessage("This widget can only be used when embedded on a website.");
+            setScreen("error");
+        }
+    }, [setErrorMessage, setScreen]);
+
     //step1: verify organization
     const validateOrganizationId = useAction(api.public.organizations.validate)
 
     useEffect(() => {
-       
+
         if(step !== "org") return;
         console.log("1st use effect")
         setLoadingMessage("Finding organization..."); 
