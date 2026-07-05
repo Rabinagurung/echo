@@ -60,6 +60,8 @@ export default defineSchema({
     email: v.string(),
     organizationId: v.string(),
     expiresAt: v.number(),
+    rateLimitWindowStart: v.optional(v.number()),
+    rateLimitMessageCount: v.optional(v.number()),
     metadata: v.optional(
       v.object({
         userAgent: v.optional(v.string()),

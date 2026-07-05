@@ -17,3 +17,13 @@ export const SESSION_DURATION_MS = 24 * 60 * 60 * 1000;
  * - Sessions should be refreshed when they fall below this threshold.
  */
 export const AUTO_REFRESH_THRESHOLD_MS = 4 * 60 * 60 * 1000;
+
+/**
+ * Rate limit window in milliseconds (1 hour).
+ */
+export const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000;
+
+/**
+ * Maximum AI messages a contact session can send per rate limit window.
+ */
+export const RATE_LIMIT_MAX_MESSAGES = 5;

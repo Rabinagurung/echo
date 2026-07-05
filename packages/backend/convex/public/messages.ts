@@ -92,6 +92,10 @@ export const create = action({
         const shouldTriggerAgent = conversation.status === "unresolved" && subscription?.status === "active";
 
         if(shouldTriggerAgent) {
+            await ctx.runMutation(
+                internal.system.contactSessions.checkAndIncrementRateLimit,
+                { contactSessionId: args.contactSessionId }
+            );
             await supportAgent.generateText(
                 ctx, 
                 {   threadId: args.threadId }, 
