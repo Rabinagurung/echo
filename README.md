@@ -1,31 +1,234 @@
-# shadcn/ui monorepo template
+# Echo
 
-This template is for creating a monorepo with shadcn/ui.
+An AI-powered customer support platform that lets you embed a real-time chat widget on any website. Organizations manage conversations, configure AI behavior, and integrate voice support — all from a single dashboard.
 
-## Usage
+**Live Demo:** https://echo-web-eight-umber.vercel.app
+
+---
+
+## Features
+
+- **Embeddable widget** — drop a single `<script>` tag on any site to add a floating chat button
+- **AI chat** — powered by Google Gemini with RAG for context-aware responses
+- **Voice calls** — integrated Vapi AI voice assistant for phone-style support
+- **Real-time conversations** — live inbox with unresolved / escalated / resolved status tracking
+- **Widget customization** — configure greeting messages, quick-reply suggestions, primary color, and button position
+- **Domain allowlisting** — restrict which domains can embed your widget
+- **Multi-tenant** — organization-based access control via Clerk
+- **Contact sessions** — capture visitor metadata (timezone, browser, screen size, referrer) automatically
+- **Plugin system** — connect third-party services (Vapi credentials stored securely in AWS Secrets Manager)
+- **Billing** — subscription management per organization
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Monorepo | Turborepo + pnpm |
+| Dashboard | Next.js 15 (Turbopack) |
+| Widget | Next.js 15 (Turbopack) |
+| Embed script | Vite + TypeScript |
+| Backend | Convex (real-time DB + serverless functions) |
+| Auth | Clerk (organizations + webhooks) |
+| AI | Google Gemini via Vercel AI SDK + `@convex-dev/agent` |
+| RAG | `@convex-dev/rag` |
+| Voice | Vapi AI |
+| Secrets | AWS Secrets Manager |
+| Styling | Tailwind CSS + shadcn/ui |
+| Error tracking | Sentry |
+
+---
+
+## Monorepo Structure
+
+```
+echo/
+├── apps/
+│   ├── web/        # Dashboard (port 3000)
+│   ├── widget/     # Embeddable chat UI (port 3001)
+│   └── embed/      # Vanilla JS embed script (port 3002)
+└── packages/
+    ├── backend/    # Convex schema, functions, and AI agents
+    ├── ui/         # Shared shadcn/ui component library
+    ├── math/       # Shared utilities
+    ├── eslint-config/
+    └── typescript-config/
+```
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 20+
+- pnpm 10+
+- [Convex account](https://convex.dev)
+- [Clerk account](https://clerk.com)
+- [Google AI Studio API key](https://aistudio.google.com)
+- AWS account (for Secrets Manager)
+- Vapi account (optional, for voice)
+
+### Installation
+
+1. Clone the repository:
 
 ```bash
-pnpm dlx shadcn@latest init
+git clone https://github.com/Rabinagurung/echo.git
+cd echo
 ```
 
-## Adding components
-
-To add components to your app, run the following command at the root of your `web` app:
+2. Install dependencies:
 
 ```bash
-pnpm dlx shadcn@latest add button -c apps/web
+pnpm install
 ```
 
-This will place the ui components in the `packages/ui/src/components` directory.
+3. Set up environment variables for each workspace (see [Environment Variables](#environment-variables)).
 
-## Tailwind
+4. Initialize the Convex backend:
 
-Your `tailwind.config.ts` and `globals.css` are already set up to use the components from the `ui` package.
-
-## Using components
-
-To use the components in your app, import them from the `ui` package.
-
-```tsx
-import { Button } from "@workspace/ui/components/button"
+```bash
+cd packages/backend
+pnpm setup
 ```
+
+5. Run the full development stack from the root:
+
+```bash
+pnpm dev
+```
+
+This starts all apps in parallel via Turborepo:
+- Dashboard → http://localhost:3000
+- Widget → http://localhost:3001
+- Embed script → http://localhost:3002
+
+---
+
+## Environment Variables
+
+### `apps/web/.env.local`
+
+```env
+NEXT_PUBLIC_CONVEX_URL=
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
+CLERK_SECRET_KEY=
+NEXT_PUBLIC_CLERK_FRONTEND_API_URL=
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL=/conversations
+NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL=/conversations
+SENTRY_AUTH_TOKEN=
+```
+
+| Variable | Description | Where to get it |
+|----------|-------------|-----------------|
+| `NEXT_PUBLIC_CONVEX_URL` | Your Convex deployment URL | [Convex dashboard](https://dashboard.convex.dev) → project settings |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk publishable key | [Clerk dashboard](https://dashboard.clerk.com) → API Keys |
+| `CLERK_SECRET_KEY` | Clerk secret key | [Clerk dashboard](https://dashboard.clerk.com) → API Keys |
+| `NEXT_PUBLIC_CLERK_FRONTEND_API_URL` | Clerk frontend API URL | Clerk dashboard → API Keys |
+| `SENTRY_AUTH_TOKEN` | Sentry auth token for source maps | [Sentry](https://sentry.io) → Settings → Auth Tokens |
+
+### `apps/widget/.env.local`
+
+```env
+NEXT_PUBLIC_CONVEX_URL=
+```
+
+| Variable | Description | Where to get it |
+|----------|-------------|-----------------|
+| `NEXT_PUBLIC_CONVEX_URL` | Same Convex deployment URL as the dashboard | [Convex dashboard](https://dashboard.convex.dev) |
+
+### `packages/backend/.env.local`
+
+```env
+CONVEX_DEPLOYMENT=
+CONVEX_URL=
+CLERK_JWT_ISSUER_DOMAIN=
+CLERK_SECRET_KEY=
+CLERK_WEBHOOK_SECRET=
+GOOGLE_GENERATIVE_AI_API_KEY=
+AWS_REGION=us-east-1
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+```
+
+| Variable | Description | Where to get it |
+|----------|-------------|-----------------|
+| `CONVEX_DEPLOYMENT` | Convex deployment identifier (e.g. `dev:my-project-123`) | Generated by `convex dev` |
+| `CONVEX_URL` | Convex deployment URL | [Convex dashboard](https://dashboard.convex.dev) |
+| `CLERK_JWT_ISSUER_DOMAIN` | Clerk JWT issuer domain | Clerk dashboard → JWT Templates |
+| `CLERK_SECRET_KEY` | Clerk secret key | [Clerk dashboard](https://dashboard.clerk.com) → API Keys |
+| `CLERK_WEBHOOK_SECRET` | Clerk webhook signing secret | Clerk dashboard → Webhooks → your endpoint |
+| `GOOGLE_GENERATIVE_AI_API_KEY` | Google Gemini API key | [Google AI Studio](https://aistudio.google.com/apikey) |
+| `AWS_REGION` | AWS region for Secrets Manager | AWS console |
+| `AWS_ACCESS_KEY_ID` | AWS IAM access key | [AWS IAM](https://console.aws.amazon.com/iam) → Security credentials |
+| `AWS_SECRET_ACCESS_KEY` | AWS IAM secret key | [AWS IAM](https://console.aws.amazon.com/iam) → Security credentials |
+
+### `apps/embed` (build-time only)
+
+```env
+VITE_WIDGET_URL=http://localhost:3001
+```
+
+| Variable | Description |
+|----------|-------------|
+| `VITE_WIDGET_URL` | URL of the deployed widget app, baked into the embed script at build time |
+
+---
+
+## Embedding the Widget
+
+Once deployed, add the following snippet to any website:
+
+```html
+<script
+  src="https://your-domain.com/embed.js"
+  data-organization-id="YOUR_ORG_ID"
+  data-position="bottom-right"
+  data-primary-color="#3b82f6"
+  async
+></script>
+```
+
+| Attribute | Required | Default | Description |
+|-----------|----------|---------|-------------|
+| `data-organization-id` | Yes | — | Your Clerk organization ID |
+| `data-position` | No | `bottom-right` | `bottom-right` or `bottom-left` |
+| `data-primary-color` | No | `#3b82f6` | Any valid CSS color value |
+
+---
+
+## Deploy
+
+### Vercel (recommended)
+
+1. Push the repo to GitHub.
+2. Import each app (`apps/web`, `apps/widget`) as separate Vercel projects.
+3. Set the root directory for each project accordingly.
+4. Add the environment variables under **Project Settings → Environment Variables**.
+5. Build and deploy.
+
+### Convex backend
+
+```bash
+cd packages/backend
+npx convex deploy
+```
+
+### Embed script
+
+```bash
+cd apps/embed
+pnpm build
+```
+
+Upload `dist/embed.js` to a CDN or your static hosting provider.
+
+---
+
+## License
+
+[MIT](LICENSE)
