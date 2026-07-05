@@ -1,11 +1,11 @@
 (function () {
   "use strict";
   const l = {
-      WIDGET_URL: "http://localhost:3001",
+      WIDGET_URL: "https://echo-widget-vert.vercel.app",
       DEFAULT_POSITION: "bottom-right",
       DEFAULT_PRIMARY_COLOR: "#3b82f6",
     },
-    p = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    f = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
 </svg>`,
     v = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -53,7 +53,7 @@
         e ||
         ((i = document.createElement("button")),
         (i.id = "echo-widget-button"),
-        (i.innerHTML = p),
+        (i.innerHTML = f),
         (i.style.cssText = `
       position: fixed;
       ${u === "bottom-right" ? "right: 20px;" : "left: 20px;"}
@@ -131,7 +131,7 @@
       const { type: n, payload: s } = t.data;
       switch (n) {
         case "close":
-          f();
+          p();
           break;
         case "resize":
           typeof (s == null ? void 0 : s.height) == "number" &&
@@ -143,7 +143,7 @@
       }
     }
     function T() {
-      d ? f() : L();
+      d ? p() : L();
     }
     function L() {
       e &&
@@ -155,7 +155,7 @@
         }, 10),
         (i.innerHTML = v));
     }
-    function f() {
+    function p() {
       e &&
         i &&
         ((d = !1),
@@ -164,7 +164,7 @@
         setTimeout(() => {
           e && (e.style.display = "none");
         }, 300),
-        (i.innerHTML = p),
+        (i.innerHTML = f),
         (i.style.background = a));
     }
     function E() {
@@ -181,6 +181,6 @@
       const n = t.primaryColor ?? null;
       (w(n) && (a = n), m());
     }
-    ((window.EchoWidget = { init: I, show: L, hide: f, destroy: E }), m());
+    ((window.EchoWidget = { init: I, show: L, hide: p, destroy: E }), m());
   })();
 })();
