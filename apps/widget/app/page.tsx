@@ -1,19 +1,10 @@
-"use client"
+import { Suspense } from "react";
+import WidgetPageClient from "@/modules/widget/ui/views/widget-page-client";
 
-import WidgetView from "@/modules/widget/ui/views/widget-view"
-
-import { use } from "react"
-
-interface Props {
-  searchParams: Promise<{organizationId: string}>
-}
-
-export default function Page({searchParams}: Props) {
-
-  const {organizationId} = use(searchParams)
-
-
+export default function Page() {
   return (
-    <WidgetView organizationId={organizationId}></WidgetView>
-  )
+    <Suspense fallback={null}>
+      <WidgetPageClient />
+    </Suspense>
+  );
 }

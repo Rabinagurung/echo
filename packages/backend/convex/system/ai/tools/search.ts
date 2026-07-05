@@ -5,9 +5,8 @@ import z from "zod";
 import { internal } from "../../../_generated/api";
 import rag from "../rag";
 import { generateText } from "ai";
- import { SEARCH_INTERPRETER_PROMPT } from "../constants";
+import { SEARCH_INTERPRETER_PROMPT } from "../constants";
 import { supportAgent } from "../agents/supportAgent";
-
 
 /**
  * Tool: Knowledge-base search + answer generation
@@ -26,52 +25,55 @@ import { supportAgent } from "../agents/supportAgent";
  *  - We return user-friendly strings instead of throwing, since tools are invoked inside model runs.
  */
 export const search = createTool({
-    description: "Search the knowledge base for relevant information to help answer user questions",
-    args: z.object({
-        query: z.string().describe("The search query to find the relevant information")
-    }), 
+  description:
+    "Search the knowledge base for relevant information to help answer user questions",
+  args: z.object({
+    query: z
+      .string()
+      .describe("The search query to find the relevant information"),
+  }),
 
-    handler: async(ctx, args) =>{
-        if(!ctx.threadId) return "Missing thread ID";
+  handler: async (ctx, args) => {
+    if (!ctx.threadId) return "Missing thread ID";
 
-        // Fetch the conversation by threadId (no direct DB here; use internal query)
-        /**
-         * We use an internal query (backend/convex/system/conversations.ts/getByThreadId).
-         * Reason: `createTool` abstracts over an action and `ctx.db` is not available here
-         * because LLM providers (Gemini/OpenAI) run outside our DB boundary.
-         * We do not throw; we return a clear message for tool consumers (the model).
-       */
-        const conversation = await ctx.runQuery(
-            internal.system.conversations.getByThreadId, 
-            {threadId: ctx.threadId}
-        )
+    // Fetch the conversation by threadId (no direct DB here; use internal query)
+    /**
+     * We use an internal query (backend/convex/system/conversations.ts/getByThreadId).
+     * Reason: `createTool` abstracts over an action and `ctx.db` is not available here
+     * because LLM providers (Gemini/OpenAI) run outside our DB boundary.
+     * We do not throw; we return a clear message for tool consumers (the model).
+     */
+    const conversation = await ctx.runQuery(
+      internal.system.conversations.getByThreadId,
+      { threadId: ctx.threadId },
+    );
 
-        if(!conversation) return "Converstion not found"; 
+    if (!conversation) return "Converstion not found";
 
-        const orgId = conversation.organizationId; 
+    const orgId = conversation.organizationId;
 
-        // RAG search in org namespace
-        const searchResult = await rag.search(ctx, {
-            namespace: orgId, 
-            query: args.query, 
-            limit: 5
-        })
+    // RAG search in org namespace
+    const searchResult = await rag.search(ctx, {
+      namespace: orgId,
+      query: args.query,
+      limit: 5,
+    });
 
-        console.log({searchResult}); 
-        
-        console.log("Entries: ", searchResult.entries); 
+    console.log({ searchResult });
 
-        //Standardize results for the LLM 
-        const contextText = `Found results in ${searchResult.entries
-            .map((e) => e.title || null)
-            .filter((t) => t !== null )
-            .join(", ")}. Here is the context:\n\n${searchResult.text}`; 
+    console.log("Entries: ", searchResult.entries);
 
-        console.log({contextText}); 
+    //Standardize results for the LLM
+    const contextText = `Found results in ${searchResult.entries
+      .map((e) => e.title || null)
+      .filter((t) => t !== null)
+      .join(", ")}. Here is the context:\n\n${searchResult.text}`;
 
-        console.log("args.query: ", args.query)
+    console.log({ contextText });
 
-        /*
+    console.log("args.query: ", args.query);
+
+    /*
         Ask the model to answer using the standardized context
         Explanation: 
         messages: [
@@ -82,36 +84,32 @@ export const search = createTool({
             { role: 'user', content: 'Show one example.' }
         ]   
         */
-        const response = await generateText({
-            messages: [
-                {
-                    role: "system", 
-                    content: SEARCH_INTERPRETER_PROMPT
-                }, 
-                {
-                    role: "user", 
-                    content:  `User asked: "${args.query}"\n\nSearch results: ${contextText}`
-                }
-            ],
-            model: google.chat("gemini-2.0-flash")
-        });
+    const response = await generateText({
+      messages: [
+        {
+          role: "system",
+          content: SEARCH_INTERPRETER_PROMPT,
+        },
+        {
+          role: "user",
+          content: `User asked: "${args.query}"\n\nSearch results: ${contextText}`,
+        },
+      ],
+      model: google.chat("gemini-3.5-flash"),
+    });
 
-     
+    //save a message to the thread
+    await supportAgent.saveMessage(ctx, {
+      threadId: ctx.threadId,
+      message: {
+        role: "assistant",
+        content: response.text,
+      },
+    });
 
+    console.log("response.text: ", response.text);
 
-        console.log(response.text);
-        
-       //save a message to the thread
-        await supportAgent.saveMessage(ctx, {
-            threadId: ctx.threadId, 
-            message: {
-                role: "assistant", 
-                content: response.text
-            }
-        });
-        
-        console.log("response.text: ", response.text);
-
-        return response.text;
-    }
+    return response.text;
+  },
 });
+
