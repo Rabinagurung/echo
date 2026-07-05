@@ -178,7 +178,7 @@ return (
         <p className='text-lg'>Let's get you started</p>
     </WidgetHeader>
     <div className="flex flex-1 flex-col items-center justify-center gap-y-4 p-4 text-muted-foreground">
-        <LoaderIcon className="animate-spin" />
+        <LoaderIcon className="animate-spin text-primary" />
         <p className="text-sm">{loadingMessage || "Loading...."}</p>
     </div>
     </>
