@@ -47,7 +47,7 @@ export const remove = mutation({
         service: v.union(v.literal("vapi"))
     }, 
     handler: async(ctx, args) => {
-        const orgId = await checkUserIdentityAndGetOrgId(ctx); 
+        const orgId = await checkUserIdentityAndGetOrgId(ctx, { requireWrite: true });
 
         const existingPlugin = await ctx.db
             .query("plugins")

@@ -53,7 +53,7 @@ export const create = mutation({
   },
 
   handler: async (ctx, args) => {
-    const orgId = await checkUserIdentityAndGetOrgId(ctx);
+    const orgId = await checkUserIdentityAndGetOrgId(ctx, { requireWrite: true });
 
     const conversation = await ctx.db.get(args.conversationId);
 
@@ -98,7 +98,7 @@ export const enhanceResponse = action({
   },
 
   handler: async (ctx, args) => {
-    const orgId = await checkUserIdentityAndGetOrgId(ctx);
+    const orgId = await checkUserIdentityAndGetOrgId(ctx, { requireWrite: true });
 
     //Only pro customers can ENHANCE RESPONSE
     const subscription = await ctx.runQuery(

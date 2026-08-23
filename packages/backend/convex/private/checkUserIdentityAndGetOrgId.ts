@@ -8,7 +8,14 @@ type CtxWithAuth =
   | Pick<MutationCtx, "auth">
   | Pick<ActionCtx, "auth">
 
-export async function checkUserIdentityAndGetOrgId(ctx: CtxWithAuth): Promise<string>{
+// Org role assigned to the shared recruiter demo account (see convex/public/guest.ts).
+// Kept out of that account's write paths so concurrent guests can't corrupt the demo data.
+export const GUEST_ORG_ROLE = "org:guest";
+
+export async function checkUserIdentityAndGetOrgId(
+  ctx: CtxWithAuth,
+  options?: { requireWrite?: boolean },
+): Promise<string>{
 
     const identity = await ctx.auth.getUserIdentity();
 
@@ -25,6 +32,13 @@ export async function checkUserIdentityAndGetOrgId(ctx: CtxWithAuth): Promise<st
       throw new ConvexError({
         code: "UNAUTHORIZED",
         message: "Organization not found",
+      });
+    }
+
+    if (options?.requireWrite && identity.orgRole === GUEST_ORG_ROLE) {
+      throw new ConvexError({
+        code: "GUEST_READ_ONLY",
+        message: "Guest accounts are read-only. Sign up for a free account to make changes.",
       });
     }
 

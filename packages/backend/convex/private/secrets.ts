@@ -78,7 +78,7 @@ export const upsert = mutation({
     }, 
 
     handler: async(ctx, args) =>{
-        const orgId = await checkUserIdentityAndGetOrgId(ctx);
+        const orgId = await checkUserIdentityAndGetOrgId(ctx, { requireWrite: true });
 
     
      /*
