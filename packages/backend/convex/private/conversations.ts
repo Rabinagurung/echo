@@ -19,8 +19,8 @@ export const updateStatus = mutation({
 
     handler: async(ctx, args) => {
 
-        const orgId  = await checkUserIdentityAndGetOrgId(ctx);
-        const conversation = await ctx.db.get(args.conversationId); 
+        const orgId  = await checkUserIdentityAndGetOrgId(ctx, { requireWrite: true });
+        const conversation = await ctx.db.get(args.conversationId);
 
         if(!conversation) {
             throw new ConvexError({

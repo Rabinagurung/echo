@@ -166,6 +166,7 @@ AWS_SECRET_ACCESS_KEY=
 | `AWS_REGION` | AWS region for Secrets Manager | AWS console |
 | `AWS_ACCESS_KEY_ID` | AWS IAM access key | [AWS IAM](https://console.aws.amazon.com/iam) → Security credentials |
 | `AWS_SECRET_ACCESS_KEY` | AWS IAM secret key | [AWS IAM](https://console.aws.amazon.com/iam) → Security credentials |
+| `CLERK_GUEST_USER_ID` | Clerk user ID of the pre-provisioned demo account used by "Continue as Guest" | See [Guest Sign-In](#guest-sign-in-recruiter-demo) below |
 
 ### `apps/embed` (build-time only)
 
@@ -176,6 +177,31 @@ VITE_WIDGET_URL=http://localhost:3001
 | Variable | Description |
 |----------|-------------|
 | `VITE_WIDGET_URL` | URL of the deployed widget app, baked into the embed script at build time |
+
+---
+
+## Guest Sign-In (Recruiter Demo)
+
+The dashboard sign-in page has a "Continue as Guest" button so people evaluating the project (e.g. recruiters) can explore it without creating an account. It signs the visitor into a single pre-provisioned demo account whose write access is disabled at the API layer, so it's safe to share — guests can view everything but can't send messages, change settings, disconnect plugins, upload/delete files, or overwrite secrets.
+
+**One-time setup in the Clerk Dashboard:**
+
+1. **Users → Create user** — make a dedicated demo account (e.g. `guest-demo@yourdomain.com`), no password required.
+2. Sign in as that user once and create/join an **Organization** for it — this becomes the shared demo workspace. Populate it from the dashboard with a few example conversations, widget settings, etc. so guests see a populated demo instead of an empty one.
+3. **Organizations → Roles** — create a custom role with the key `org:guest` (name/permissions don't matter; the app enforces read-only access itself, not Clerk's built-in permission checks).
+4. Open that organization → **Members**, and set the demo user's role to `org:guest`.
+5. Copy the demo user's ID from **Users → (the demo user)** — it's shown at the top and starts with `user_`.
+6. Set it as a Convex environment variable:
+
+```bash
+cd packages/backend
+npx convex env set CLERK_GUEST_USER_ID user_xxxxxxxxxxxx
+```
+
+**Notes:**
+- If your Clerk plan doesn't support custom organization roles, swap the `org:guest` role check in `packages/backend/convex/private/checkUserIdentityAndGetOrgId.ts` for a check on the user's `publicMetadata` (e.g. `{ isGuest: true }`) exposed via a custom claim in your Clerk JWT template instead.
+- The write guard runs server-side on every mutation, so even a guest calling a mutation directly from devtools gets rejected with a `GUEST_READ_ONLY` error — the button is just the convenient path in.
+- Until `CLERK_GUEST_USER_ID` is set, clicking "Continue as Guest" fails with "Guest sign-in is unavailable right now."
 
 ---
 

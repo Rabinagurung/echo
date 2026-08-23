@@ -45,7 +45,7 @@ export const upsert = mutation({
   },
 
   handler: async (ctx, args) => {
-    const orgId = await checkUserIdentityAndGetOrgId(ctx);
+    const orgId = await checkUserIdentityAndGetOrgId(ctx, { requireWrite: true });
 
     const existingWidgetSettings = await ctx.db
       .query("widgetSettings")

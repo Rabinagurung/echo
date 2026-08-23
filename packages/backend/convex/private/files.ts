@@ -66,7 +66,7 @@ export const addFile = action({
 
 
         // Verify identity and get the organization ID
-        const orgId = await checkUserIdentityAndGetOrgId(ctx); 
+        const orgId = await checkUserIdentityAndGetOrgId(ctx, { requireWrite: true });
 
         //Only pro customers can add files for knowledge base
         const subscription = await ctx.runQuery(internal.system.subscriptions.getByOrganizationId, {
@@ -164,7 +164,7 @@ export const deleteFile = mutation({
     handler: async (ctx, args) => {
 
         // Verify user identity and get the organization ID
-        const orgId = await checkUserIdentityAndGetOrgId(ctx);
+        const orgId = await checkUserIdentityAndGetOrgId(ctx, { requireWrite: true });
 
         // Ensure the namespace exists for this organization
         const namespace = await rag.getNamespace(ctx, {namespace: orgId}); 
