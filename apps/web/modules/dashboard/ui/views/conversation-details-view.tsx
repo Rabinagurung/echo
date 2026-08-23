@@ -5,7 +5,8 @@ import { Doc, Id } from '@workspace/backend/_generated/dataModel'
 import {  useAction, useMutation, useQuery } from 'convex/react'
 import { toUIMessages, useThreadMessages } from "@convex-dev/agent/react";
 import { Button } from '@workspace/ui/components/button';
-import { MoreHorizontalIcon, Wand2Icon } from 'lucide-react';
+import { ArrowLeftIcon, MoreHorizontalIcon, Wand2Icon } from 'lucide-react';
+import Link from 'next/link';
 import {
   AIConversation,
   AIConversationContent,
@@ -155,7 +156,12 @@ export const ConversationDetailsView = ({conversationId}: ConversationDetailsVie
   return (
     <div className='flex h-full flex-col bg-muted'>
         <header className="flex items-center justify-between border-b bg-background p-2.5">
-            <Button size="sm" variant="ghost">
+            <Button asChild size="sm" variant="ghost" className="md:hidden">
+                <Link href="/conversations">
+                    <ArrowLeftIcon/>
+                </Link>
+            </Button>
+            <Button size="sm" variant="ghost" className="hidden md:inline-flex">
                 <MoreHorizontalIcon/>
             </Button>
             {!!conversation && (<ConversationStatusButton
@@ -264,7 +270,12 @@ export const ConversationIdViewLoading = () => {
   return (
     <div className="flex h-full flex-col bg-muted">
       <header className="flex items-center justify-between border-b bg-background p-2.5">
-        <Button disabled size="sm" variant="ghost">
+        <Button asChild size="sm" variant="ghost" className="md:hidden">
+            <Link href="/conversations">
+                <ArrowLeftIcon/>
+            </Link>
+        </Button>
+        <Button disabled size="sm" variant="ghost" className="hidden md:inline-flex">
           <MoreHorizontalIcon />
         </Button>
       </header>

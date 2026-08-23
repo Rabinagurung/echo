@@ -21,16 +21,16 @@ const VapiConnectedView = ({ onDisconnect }: VapiConnectedViewProps) => {
     <div className="space-y-6">
         <Card>
             <CardHeader>
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <Image 
+                <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex min-w-0 items-center gap-4">
+                        <Image
                             alt="Vapi"
-                            className="rounded-lg object-contain"
+                            className="shrink-0 rounded-lg object-contain"
                             height={48}
                             width={48}
                             src="/vapi.jpg"
                         />
-                        <div>
+                        <div className="min-w-0">
                             <CardTitle>Vapi Integration</CardTitle>
                             <CardDescription>
                                 Manage your phone numbers and AI assistants
@@ -38,7 +38,7 @@ const VapiConnectedView = ({ onDisconnect }: VapiConnectedViewProps) => {
                         </div>
                     </div>
 
-                    <Button onClick={onDisconnect} size="sm" variant="destructive">
+                    <Button onClick={onDisconnect} size="sm" variant="destructive" className="w-full sm:w-auto">
                         <UnplugIcon/>
                         Disconnect
                     </Button>
@@ -48,19 +48,19 @@ const VapiConnectedView = ({ onDisconnect }: VapiConnectedViewProps) => {
 
         <Card>
             <CardHeader>
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                            <div className="flex size-12 items-center justify-center rounded-lg border bg-muted">
+                <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex min-w-0 items-center gap-4">
+                            <div className="flex size-12 shrink-0 items-center justify-center rounded-lg border bg-muted">
                                 <SettingsIcon className="size-6 text-muted-foreground"/>
                             </div>
-                            <div>
+                            <div className="min-w-0">
                                 <CardTitle>Widget Configuration</CardTitle>
                                 <CardDescription>
                                 Set up voice calls for your chat widget
                                 </CardDescription>
                             </div>
                         </div>
-                    <Button asChild>
+                    <Button asChild className="w-full sm:w-auto">
                         <Link href="/customization">
                             <SettingsIcon />
                             Configure

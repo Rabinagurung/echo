@@ -34,7 +34,7 @@ export const IntegrationView = () => {
   return (
    <>
     <IntegrationDialog open={dialogOpen} onOpenChange={setDialogOpen} snippet={selectedSnippet}/>
-     <div className="flex min-h-screen flex-col bg-muted p-8">
+     <div className="flex min-h-screen flex-col bg-muted p-4 sm:p-8">
       <div className="mx-auto w-full  max-w-screen-md">
         <div className="space-y-2">
           <h1 className="text-2xl md:text-4xl">Setup & Integrations</h1>
@@ -42,19 +42,19 @@ export const IntegrationView = () => {
         </div>
       </div>
       <div className="mt-8 space-y-6">
-        <div className="flex items-center gap-4">
-          <Label className="w-34px" htmlFor="organization-id">
+        <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-4">
+          <Label className="shrink-0" htmlFor="organization-id">
             Organization ID
           </Label>
-          <Input 
+          <Input
             disabled
             id="organization-id"
             readOnly
             value={organization?.id ?? ""}
-            className="flex-1 bg-background font-mono text-sm"
+            className="w-full min-w-0 flex-1 bg-background font-mono text-sm"
           />
           <Button
-            className="gap-2"
+            className="w-full gap-2 sm:w-auto"
             onClick={()=> copyToClipboard(organization?.id ?? "")}
             size="sm"
           >

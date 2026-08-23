@@ -164,7 +164,7 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero */}
-      <section className="relative flex min-h-[90vh] flex-col items-center justify-center px-6 text-center">
+      <section className="relative flex min-h-[90vh] flex-col items-center justify-center px-4 text-center sm:px-6">
         {/* Grid background */}
         <div
           className="pointer-events-none absolute inset-0"
@@ -283,7 +283,7 @@ export default function LandingPage() {
 
         {/* Stats */}
         <div
-          className="relative z-10 mt-20 grid w-full max-w-xl grid-cols-3 gap-6 rounded-2xl border bg-card/80 p-6 shadow-sm backdrop-blur-sm"
+          className="relative z-10 mt-20 grid w-full max-w-xl grid-cols-3 gap-3 rounded-2xl border bg-card/80 p-4 shadow-sm backdrop-blur-sm sm:gap-6 sm:p-6"
           style={{
             opacity: mounted ? 1 : 0,
             transform: mounted ? "translateY(0)" : "translateY(16px)",
