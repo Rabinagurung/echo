@@ -154,7 +154,7 @@ export const ConversationDetailsView = ({conversationId}: ConversationDetailsVie
     }
 
   return (
-    <div className='flex h-full flex-col bg-muted'>
+    <div className='flex h-full min-h-0 flex-col bg-muted'>
         <header className="flex items-center justify-between border-b bg-background p-2.5">
             <Button asChild size="sm" variant="ghost" className="md:hidden">
                 <Link href="/conversations">
@@ -168,10 +168,10 @@ export const ConversationDetailsView = ({conversationId}: ConversationDetailsVie
                 onClick={handleToggleStauts}
                 status={conversation.status}
                 disabled={isUpdatingStatus}
-                
+
             />)}
         </header>
-        <AIConversation className="max-h-[calc(100vh-180px)]">
+        <AIConversation className="min-h-0">
             <AIConversationContent>
                 <InfiniteScrollTrigger 
                     canLoadMore={canLoadMore}
@@ -268,7 +268,7 @@ export const ConversationDetailsView = ({conversationId}: ConversationDetailsVie
 
 export const ConversationIdViewLoading = () => {
   return (
-    <div className="flex h-full flex-col bg-muted">
+    <div className="flex h-full min-h-0 flex-col bg-muted">
       <header className="flex items-center justify-between border-b bg-background p-2.5">
         <Button asChild size="sm" variant="ghost" className="md:hidden">
             <Link href="/conversations">
@@ -279,7 +279,7 @@ export const ConversationIdViewLoading = () => {
           <MoreHorizontalIcon />
         </Button>
       </header>
-      <AIConversation className="max-h-[calc(100vh-180px)]">
+      <AIConversation className="min-h-0">
         <AIConversationContent>
           {Array.from({ length: 8 }, (_, index) => {
             const isUser = index % 2 === 0;

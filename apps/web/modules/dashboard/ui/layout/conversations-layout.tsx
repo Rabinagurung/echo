@@ -19,19 +19,19 @@ const ConversationLayout = ({children}: {children: React.ReactNode}) => {
 
   if (isMobile) {
     return (
-      <div className="h-full w-full">
+      <div className="h-full min-h-0 w-full flex-1 overflow-hidden">
         {isConversationSelected ? children : <ConversationsPanel/>}
       </div>
     );
   }
 
   return (
-    <ResizablePanelGroup className="h-full w-full" direction="horizontal">
+    <ResizablePanelGroup className="h-full min-h-0 w-full flex-1" direction="horizontal">
         <ResizablePanel defaultSize={30} maxSize={30} minSize={20}>
             <ConversationsPanel/>
         </ResizablePanel>
         <ResizableHandle/>
-        <ResizablePanel className="h-full" defaultSize={70}>{children}</ResizablePanel>
+        <ResizablePanel className="h-full min-h-0" defaultSize={70}>{children}</ResizablePanel>
     </ResizablePanelGroup>
   )
 }

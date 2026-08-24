@@ -81,6 +81,18 @@ const components: Options["components"] = {
       {children}
     </h6>
   ),
+  pre: ({ children, className, ...props }) => (
+    <pre className={cn("overflow-x-auto", className)} {...props}>
+      {children}
+    </pre>
+  ),
+  table: ({ children, className, ...props }) => (
+    <div className="overflow-x-auto">
+      <table className={cn("w-full", className)} {...props}>
+        {children}
+      </table>
+    </div>
+  ),
 };
 
 export const AIResponse = memo(
