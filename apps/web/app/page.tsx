@@ -125,6 +125,27 @@ const steps = [
   },
 ];
 
+export function ChatWidget() {
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://echo-web-eight-umber.vercel.app/embed.js";
+    script.async = true;
+    script.setAttribute(
+      "data-organization-id",
+      process.env.NEXT_PUBLIC_ORG_ID || "",
+    );
+    document.body.appendChild(script);
+
+    return () => {
+      script.remove();
+      document.getElementById("echo-widget-button")?.remove();
+      document.getElementById("echo-widget-container")?.remove();
+    };
+  }, []);
+
+  return null;
+}
+
 export default function LandingPage() {
   const { isSignedIn } = useAuth();
   const [mounted, setMounted] = useState(false);
@@ -412,11 +433,7 @@ export default function LandingPage() {
       </section>
 
       {/* Embed script — loads the chat widget as a floating bubble (bottom-right) */}
-      <Script
-        src="/embed.js"
-        data-organization-id={process.env.NEXT_PUBLIC_ORG_ID || ""}
-        strategy="lazyOnload"
-      />
+      <ChatWidget />
 
       {/* CTA */}
       <section className="relative border-t py-24">
