@@ -116,8 +116,8 @@ export const AIInputTextarea = ({
   return (
     <Textarea
       className={cn(
-        "text-sm!",
-        "w-full resize-none rounded-none border-none p-3 shadow-none outline-none ring-0",
+        "text-base! md:text-sm!",
+        "field-sizing-fixed! w-full min-w-0 resize-none rounded-none border-none p-3 shadow-none outline-none ring-0",
         "bg-transparent dark:bg-transparent",
         "focus-visible:ring-0",
         className
@@ -211,7 +211,7 @@ export const AIInputSubmit = ({
 
   return (
     <Button
-      className={cn("gap-1.5 rounded-md rounded-br-lg", className)}
+      className={cn("shrink-0 gap-1.5 rounded-md rounded-br-lg", className)}
       size={size}
       type="submit"
       variant={variant}
