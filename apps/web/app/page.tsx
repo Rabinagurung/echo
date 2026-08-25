@@ -125,7 +125,7 @@ const steps = [
   },
 ];
 
-export function ChatWidget() {
+function ChatWidget() {
   useEffect(() => {
     const script = document.createElement("script");
     script.src = "https://echo-web-eight-umber.vercel.app/embed.js";
