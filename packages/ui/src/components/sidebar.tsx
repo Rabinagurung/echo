@@ -182,7 +182,7 @@ function Sidebar({
 
   if (isMobile) {
     return (
-      <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
+      <Sheet open={openMobile} onOpenChange={setOpenMobile} modal={false} {...props}>
         <SheetContent
           data-sidebar="sidebar"
           data-slot="sidebar"
@@ -194,6 +194,15 @@ function Sidebar({
             } as React.CSSProperties
           }
           side={side}
+          onPointerDownOutside={(event) => {
+            // Clerk components (UserButton, OrganizationSwitcher) portal their
+            // popovers directly to <body>, outside this Dialog's DOM subtree.
+            // Without this, Radix treats taps inside them as "outside clicks"
+            // and closes the sidebar before the tap can reach the popover.
+            if ((event.target as HTMLElement | null)?.closest('[class*="cl-"]')) {
+              event.preventDefault()
+            }
+          }}
         >
           <SheetHeader className="sr-only">
             <SheetTitle>Sidebar</SheetTitle>
