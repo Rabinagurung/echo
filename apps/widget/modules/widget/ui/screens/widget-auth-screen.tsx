@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import WidgetHeader from "../components/widget-header";
 import {
   Form,
@@ -27,6 +27,7 @@ import {
   screenAtom,
 } from "../../atoms/widget-atoms";
 import { getEmbeddingOrigin } from "@/lib/get-embedding-origin";
+import { GUEST_EMAIL_DOMAIN, GUEST_NAME } from "../../constants";
 
 const FormSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -74,18 +75,19 @@ const WidgetAuthScreen = () => {
    */
   const createContactSession = useMutation(api.public.contactSessions.create);
 
+  const [isGuestSubmitting, setIsGuestSubmitting] = useState(false);
+
   /**
-   * Handles form submission:
+   * Starts a contact session for the given identity:
    * 1) Builds browser/environment metadata.
    * 2) Creates the contact session in DB.
    * 3) Stores session id in local (scoped) atom + switches to "selection" screen.
    *
-   * @param data - Validated form values {name, email}.
+   * @param data - Identity values {name, email}, either typed or guest defaults.
    * @remarks
    * - No-op if `organizationId` is missing (widget not fully configured).
-   * - Assumes mutation success; add try/catch for UX resilience.
    */
-  const onSubmit = async (data: z.infer<typeof FormSchema>) => {
+  const startSession = async (data: z.infer<typeof FormSchema>) => {
     if (!organizationId) return;
 
     const metadata: Doc<"contactSessions">["metadata"] = {
@@ -121,6 +123,27 @@ const WidgetAuthScreen = () => {
           ? error.message
           : "Unable to start the chat. Please try again.",
       );
+    }
+  };
+
+  const onSubmit = (data: z.infer<typeof FormSchema>) => startSession(data);
+
+  /**
+   * One-click guest sign in: skips the form and starts a session with a
+   * generated guest identity so the visitor can try the widget right away.
+   */
+  const onGuestSignIn = async () => {
+    if (isGuestSubmitting) return;
+
+    setIsGuestSubmitting(true);
+
+    try {
+      await startSession({
+        name: GUEST_NAME,
+        email: `guest-${crypto.randomUUID().slice(0, 8)}@${GUEST_EMAIL_DOMAIN}`,
+      });
+    } finally {
+      setIsGuestSubmitting(false);
     }
   };
 
@@ -173,9 +196,18 @@ const WidgetAuthScreen = () => {
           <Button
             type="submit"
             size="lg"
-            disabled={form.formState.isSubmitting}
+            disabled={form.formState.isSubmitting || isGuestSubmitting}
           >
             Submit
+          </Button>
+          <Button
+            type="button"
+            size="lg"
+            variant="outline"
+            disabled={form.formState.isSubmitting || isGuestSubmitting}
+            onClick={onGuestSignIn}
+          >
+            {isGuestSubmitting ? "Signing in..." : "Continue as guest"}
           </Button>
         </form>
       </Form>

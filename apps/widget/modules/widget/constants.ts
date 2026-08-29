@@ -11,3 +11,7 @@ export const WIDGET_SCREENS = [
 
 //key in local storage to store user contact session Id.
 export const CONTACT_SESSION_KEY = "echo_contact_session"
+
+//prefilled identity used by the "Continue as guest" one-click sign in.
+export const GUEST_NAME = "Guest User";
+export const GUEST_EMAIL_DOMAIN = "guest.echo.app";
