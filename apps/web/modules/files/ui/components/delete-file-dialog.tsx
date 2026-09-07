@@ -7,6 +7,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useMutation } from 'convex/react';
 import { open } from 'fs';
 import { useState } from 'react';
+import { useIsGuest } from '@/modules/auth/hooks/use-is-guest';
+import { GuestReadOnlyNotice } from '@/modules/auth/ui/components/GuestReadOnlyNotice';
 
 
 interface DeleteFileDialogProps {
@@ -23,8 +25,9 @@ export const DeleteFileDialog = ({
     onDeleted
 }: DeleteFileDialogProps) =>{
 
-    const deleteFile = useMutation(api.private.files.deleteFile); 
+    const deleteFile = useMutation(api.private.files.deleteFile);
     const [isDeleting, setIsDeleting] = useState(false);
+    const isGuest = useIsGuest();
 
     const handleDelete = async() =>{
 
@@ -69,8 +72,10 @@ export const DeleteFileDialog = ({
                     </div>
                 )}
 
+                {isGuest && <GuestReadOnlyNotice className="pb-2" />}
+
                 <DialogFooter>
-                    <Button 
+                    <Button
                         variant="outline"
                         disabled={isDeleting}
                         onClick={() => onOpenChange(false)}
@@ -78,9 +83,9 @@ export const DeleteFileDialog = ({
                     >
                         Cancel
                     </Button>
-                    <Button 
-                        variant="destructive" 
-                        disabled={isDeleting || !file}
+                    <Button
+                        variant="destructive"
+                        disabled={isDeleting || !file || isGuest}
                         onClick={handleDelete}
                     >
                        {isDeleting ? "Deleting..." : "Delete"}

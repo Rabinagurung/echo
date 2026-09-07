@@ -28,6 +28,8 @@ import { api } from "@workspace/backend/_generated/api";
 import { useState } from "react";
 import { toast } from "sonner";
 import VapiConnectedView from "./vapi-connected-view";
+import { useIsGuest } from "@/modules/auth/hooks/use-is-guest";
+import { GuestReadOnlyNotice } from "@/modules/auth/ui/components/GuestReadOnlyNotice";
 
 const vapiFeatures: Feature[] = [
   {
@@ -76,6 +78,7 @@ interface VapiPluginFormProps {
 const VapiPluginForm = ({open, setOpen}: VapiPluginFormProps) => {
 
     const upsertSecret = useMutation(api.private.secrets.upsert);
+    const isGuest = useIsGuest();
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -159,10 +162,11 @@ const VapiPluginForm = ({open, setOpen}: VapiPluginFormProps) => {
                                 </FormItem>
                             )}
                         />
+                        {isGuest && <GuestReadOnlyNotice />}
                         <DialogFooter>
                             <Button
-                                disabled={form.formState.isSubmitting}
-                                type="submit"   
+                                disabled={form.formState.isSubmitting || isGuest}
+                                type="submit"
                             >
                                 {form.formState.isSubmitting ? "Connecting..." : "Connect"}
                             </Button>
@@ -187,6 +191,7 @@ const VapiPluginRemoveForm = ({
   setOpen: (value: boolean) => void;
 }) => {
   const removePlugin = useMutation(api.private.plugins.remove);
+  const isGuest = useIsGuest();
 
   const onSubmit = async () => {
     try {
@@ -210,8 +215,9 @@ const VapiPluginRemoveForm = ({
         <DialogDescription>
           Are you sure you want to disconnect the Vapi plugin?
         </DialogDescription>
+        {isGuest && <GuestReadOnlyNotice />}
         <DialogFooter>
-          <Button onClick={onSubmit} variant="destructive">
+          <Button onClick={onSubmit} variant="destructive" disabled={isGuest}>
             Disconnect
           </Button>
         </DialogFooter>
@@ -286,9 +292,10 @@ const VapiView = () => {
      * Presence of a plugin record indicates that Vapi is connected for this org.
      * `undefined` => loading; `null` => not found; object => connected.
      */   
-    const vapiPlugin = useQuery(api.private.plugins.getOne, {service: "vapi"}); 
+    const vapiPlugin = useQuery(api.private.plugins.getOne, {service: "vapi"});
+    const isGuest = useIsGuest();
 
-     // Controls visibility of the connection modal dialog. 
+     // Controls visibility of the connection modal dialog.
     const [connectOpen, setConnectOpen] = useState(false); 
 
      // Controls visibility of the future removal confirmation dialog.
@@ -319,12 +326,13 @@ const VapiView = () => {
                 <h1 className="text-2xl md:text-4xl">Vapi Plugin</h1>
                 <p className="text-muted-foreground">Connect Vapi to enable AI voice calls and phone support</p>
             </div>
+            {isGuest && <GuestReadOnlyNotice className="mt-4" />}
             <div className="mt-8">
-                {vapiPlugin ? ( 
+                {vapiPlugin ? (
                    <VapiConnectedView onDisconnect={toggleConnection} />
                 ) :  (
-                    <PluginCard 
-                        isDisabled={vapiPlugin === undefined}
+                    <PluginCard
+                        isDisabled={vapiPlugin === undefined || isGuest}
                         serviceName="Vapi"
                         serviceImage="/vapi.jpg"
                         features={vapiFeatures}

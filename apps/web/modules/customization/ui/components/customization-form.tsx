@@ -27,6 +27,8 @@ import { toast } from "sonner";
 import VapiFormFields from "./vapi-form-fields";
 import { widgetSettingsSchema } from "../../schemas";
 import { FormSchema } from "../../types";
+import { useIsGuest } from "@/modules/auth/hooks/use-is-guest";
+import { GuestReadOnlyNotice } from "@/modules/auth/ui/components/GuestReadOnlyNotice";
 
 type WidgetSettings = Doc<"widgetSettings">;
 
@@ -40,6 +42,7 @@ const CustomizationForm = ({
   hasVapiPlugin,
 }: CustomizationFormProps) => {
   const upsertWidgetSettings = useMutation(api.private.widgetSettings.upsert);
+  const isGuest = useIsGuest();
 
   const form = useForm<FormSchema>({
     resolver: zodResolver(widgetSettingsSchema),
@@ -94,6 +97,7 @@ const CustomizationForm = ({
   return (
     <Form {...form}>
       <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
+      <fieldset disabled={isGuest} className="space-y-6 border-0 p-0 m-0">
         <Card>
           <CardHeader>
             <CardTitle>General Chat Settings</CardTitle>
@@ -251,8 +255,12 @@ const CustomizationForm = ({
           </CardContent>
         </Card>
 
+      </fieldset>
+
+        {isGuest && <GuestReadOnlyNotice />}
+
         <div className="flex justify-end">
-          <Button disabled={form.formState.isSubmitting} type="submit">
+          <Button disabled={form.formState.isSubmitting || isGuest} type="submit">
             Save Settings
           </Button>
         </div>

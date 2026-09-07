@@ -9,8 +9,10 @@ type CtxWithAuth =
   | Pick<ActionCtx, "auth">
 
 // Org role assigned to the shared recruiter demo account (see convex/public/guest.ts).
-// Kept out of that account's write paths so concurrent guests can't corrupt the demo data.
-export const GUEST_ORG_ROLE = "org:guest";
+// This Clerk instance only has the built-in Admin/Member org roles, so Member
+// doubles as the read-only marker — real orgs should keep non-admin teammates
+// on Admin if they need write access, since Member is now guest-equivalent.
+export const GUEST_ORG_ROLE = "org:member";
 
 export async function checkUserIdentityAndGetOrgId(
   ctx: CtxWithAuth,

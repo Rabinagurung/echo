@@ -8,6 +8,8 @@ import { api } from "@workspace/backend/_generated/api";
 import { useAction } from "convex/react";
 import { useState } from "react";
 import { Label } from "@workspace/ui/components/label";
+import { useIsGuest } from "@/modules/auth/hooks/use-is-guest";
+import { GuestReadOnlyNotice } from "@/modules/auth/ui/components/GuestReadOnlyNotice";
 
 
 interface UploadDialogProps {
@@ -18,7 +20,8 @@ interface UploadDialogProps {
 
 export const UploadDialog = ({open, onOpenChange, onFileUploaded}:UploadDialogProps) => {
 
-    const addFile = useAction(api.private.files.addFile); 
+    const addFile = useAction(api.private.files.addFile);
+    const isGuest = useIsGuest();
 
     const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
     console.log({uploadedFiles})
@@ -130,14 +133,14 @@ export const UploadDialog = ({open, onOpenChange, onFileUploaded}:UploadDialogPr
                             value={uploadForm.filename}
                         />
                     </div>
-                    <Dropzone 
+                    <Dropzone
                         accept={{
-                        "application/pdf": [".pdf"], 
-                        "text/csv": [".csv"], 
-                        "text/plain": [".txt"], 
+                        "application/pdf": [".pdf"],
+                        "text/csv": [".csv"],
+                        "text/plain": [".txt"],
                         "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"]
                         }}
-                        disabled={isUploading}
+                        disabled={isUploading || isGuest}
                         maxFiles={1}
                         onDrop={handleFileDrop}
                         src={uploadedFiles}
@@ -146,17 +149,18 @@ export const UploadDialog = ({open, onOpenChange, onFileUploaded}:UploadDialogPr
                         <DropzoneContent/>
                     </Dropzone>
                 </div>
+                {isGuest && <GuestReadOnlyNotice className="mt-4" />}
                 <DialogFooter>
-                    <Button 
+                    <Button
                         variant="outline"
                         disabled={isUploading}
                         onClick={handleCancel}
                     >
                         Cancel
                     </Button>
-                    <Button 
+                    <Button
                     onClick={handleUpload}
-                    disabled={uploadedFiles.length === 0 || isUploading || !uploadForm.category}
+                    disabled={uploadedFiles.length === 0 || isUploading || !uploadForm.category || isGuest}
                     >
                         {isUploading ? "Uploading..." : "Upload"}
                     </Button>

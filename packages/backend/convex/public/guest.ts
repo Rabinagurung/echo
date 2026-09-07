@@ -16,7 +16,7 @@ const clerkClient = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY 
  * `signIn.create({ strategy: "ticket", ticket })` to get a real, isolated
  * Clerk session without ever handling a shared password.
  *
- * The guest account's org role (org:guest) is what actually protects the
+ * The guest account's org role (org:member) is what actually protects the
  * demo data — see checkUserIdentityAndGetOrgId's `requireWrite` guard.
  */
 export const createSignInTicket = action({

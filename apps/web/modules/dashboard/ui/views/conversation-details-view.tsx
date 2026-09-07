@@ -37,6 +37,8 @@ import ConversationStatusButton from '../components/conversation-status-button';
 import { Skeleton } from '@workspace/ui/components/skeleton';
 import { cn } from '@workspace/ui/lib/utils';
 import { toast } from 'sonner';
+import { useIsGuest } from '@/modules/auth/hooks/use-is-guest';
+import { GuestReadOnlyNotice } from '@/modules/auth/ui/components/GuestReadOnlyNotice';
 
 
 interface ConversationDetailsViewProps {
@@ -48,6 +50,8 @@ const formSchema = z.object({
 })
 
 export const ConversationDetailsView = ({conversationId}: ConversationDetailsViewProps) => {
+
+    const isGuest = useIsGuest();
 
     // const conversation = null;
     const conversation = useQuery(api.private.conversations.getOne, {
@@ -167,7 +171,7 @@ export const ConversationDetailsView = ({conversationId}: ConversationDetailsVie
             {!!conversation && (<ConversationStatusButton
                 onClick={handleToggleStauts}
                 status={conversation.status}
-                disabled={isUpdatingStatus}
+                disabled={isUpdatingStatus || isGuest}
 
             />)}
         </header>
@@ -203,16 +207,17 @@ export const ConversationDetailsView = ({conversationId}: ConversationDetailsVie
         <div className='p-2'>
             <Form {...form}>
                 <AIInput onSubmit={form.handleSubmit(onSubmit)}>
-                    <FormField 
+                    <FormField
                         control={form.control}
                         name="message"
-                        disabled={conversation?.status === "resolved"}
+                        disabled={conversation?.status === "resolved" || isGuest}
                         render= {({field}) =>(
-                            <AIInputTextarea 
+                            <AIInputTextarea
                                 disabled={
-                                    conversation?.status === "resolved" || 
+                                    conversation?.status === "resolved" ||
                                     form.formState.isSubmitting ||
-                                    isEnhancing
+                                    isEnhancing ||
+                                    isGuest
                                 }
 
                                 onChange={field.onChange}
@@ -224,7 +229,9 @@ export const ConversationDetailsView = ({conversationId}: ConversationDetailsVie
                                 }}
 
                                 placeholder={
-                                    conversation?.status === "resolved"
+                                    isGuest
+                                    ? "Guest accounts are read-only"
+                                    : conversation?.status === "resolved"
                                     ? "This conversation has been resolved"
                                     : "Type your response as an operator..."
                                 }
@@ -235,24 +242,26 @@ export const ConversationDetailsView = ({conversationId}: ConversationDetailsVie
                     />
                     <AIInputToolbar>
                         <AIInputTools>
-                            <AIInputButton 
+                            <AIInputButton
                             onClick={handleEnhanceResponse}
                             disabled={
-                                conversation?.status === "resolved" || 
+                                conversation?.status === "resolved" ||
                                 isEnhancing  ||
-                                !form.formState.isValid
+                                !form.formState.isValid ||
+                                isGuest
                             }
                             >
                                 <Wand2Icon/>
                                 {isEnhancing ? "Enhancing..." : "Enhance"}
                             </AIInputButton>
                         </AIInputTools>
-                        <AIInputSubmit 
+                        <AIInputSubmit
                          disabled={
                             conversation?.status === "resolved" ||
                             !form.formState.isValid ||
-                            form.formState.isSubmitting || 
-                            isEnhancing
+                            form.formState.isSubmitting ||
+                            isEnhancing ||
+                            isGuest
                         }
                         status='ready'
                         type='submit'
@@ -260,6 +269,7 @@ export const ConversationDetailsView = ({conversationId}: ConversationDetailsVie
                     </AIInputToolbar>
                 </AIInput>
             </Form>
+            {isGuest && <GuestReadOnlyNotice className="mt-2" />}
         </div>
     </div>
   )
